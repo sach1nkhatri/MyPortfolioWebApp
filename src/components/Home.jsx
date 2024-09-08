@@ -11,6 +11,7 @@ import youtubeIcon from '../assets/youtube.png';
 function Home() {
     return (
         <div className="home">
+            {/* Combined Intro Section with Image */}
             <section className="intro">
                 <div className="intro-text">
                     <h1>{homeData.intro.title}</h1>
@@ -20,30 +21,28 @@ function Home() {
                     </a>
                 </div>
                 <div className="intro-image">
-                    <img src={homeData.profileImage} alt="Profile"/>
+                    <img src={homeData.profileImage} alt="Profile" />
                 </div>
             </section>
 
-
             <section className="featured-work">
-                <FeaturedWork/>
+                <FeaturedWork />
             </section>
 
             <section className="social-link">
                 <h1>Connect With Me On</h1>
                 <div className="social-links">
                     <a href="https://www.instagram.com/your-profile" target="_blank" rel="noopener noreferrer">
-                        <img src={instagramIcon} alt="Instagram"/>
+                        <img src={instagramIcon} alt="Instagram" />
                     </a>
                     <a href="https://github.com/sach1nkhatri" target="_blank" rel="noopener noreferrer">
-                        <img src={githubIcon} alt="GitHub"/>
+                        <img src={githubIcon} alt="GitHub" />
                     </a>
                     <a href="https://www.youtube.com/@SachinKhatri" target="_blank" rel="noopener noreferrer">
-                        <img src={youtubeIcon} alt="YouTube"/>
+                        <img src={youtubeIcon} alt="YouTube" />
                     </a>
                 </div>
             </section>
-
         </div>
     );
 }

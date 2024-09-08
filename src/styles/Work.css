@@ -1,50 +1,66 @@
-/* src/styles/Work.css */
-
+/* Work Container */
 .work {
-    padding: 40px;
-    max-width: 900px;
-    margin: auto;
+    padding: 2rem;
+    max-width: 1200px; /* Increase max-width for better alignment on larger screens */
+    margin: 0 auto; /* Center the container */
+    background-color: #f9f9f9;
+    box-sizing: border-box;
 }
 
+/* Work Title */
 .work h1 {
     font-size: 28px;
     font-weight: bold;
     margin-bottom: 30px;
+    text-align: center; /* Center align title */
 }
 
+/* Featured Work Items */
 .featured-work-items {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Adjust columns based on screen size */
+    gap: 2rem; /* Space between items */
 }
 
+/* Work Item */
 .work-item {
     display: flex;
-    gap: 20px;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center align items */
     background-color: #f9f9f9;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    text-decoration: none; /* Ensure no underline by default */
+    color: black;
+    box-sizing: border-box;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effect */
 }
 
+/* Work Item Anchor Tag */
 .work-item a {
     text-decoration: none; /* Remove underline from links */
-    color: inherit; /* Use the parent's color */
-    display: flex; /* Flexbox ensures it occupies full space */
-    width: 100%; /* Ensure anchor takes full width */
+    color: inherit; /* Ensure link inherits color from parent */
 }
 
+/* Work Item Hover Effect */
+.work-item:hover {
+    transform: translateY(-10px); /* Lift up effect */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Enhance shadow on hover */
+}
+
+/* Work Image */
 .work-item img {
-    width: 400px;
+    width: 100%;
+    max-width: 400px; /* Constrain max width */
     height: auto;
     border-radius: 10px;
-    object-fit: cover;
-    margin-right: 20px; /* Add margin to the right of the image */
+    object-fit: cover; /* Ensure image covers the container */
+    margin-bottom: 20px; /* Add margin below image */
 }
 
+/* Work Info */
 .work-info {
-    flex: 1;
+    text-align: center; /* Center align text */
 }
 
 .work-info h2 {
@@ -55,6 +71,7 @@
 
 .work-meta {
     display: flex;
+    justify-content: center; /* Center align meta info */
     gap: 10px;
     align-items: center;
     margin-bottom: 10px;
@@ -82,13 +99,7 @@
 
 /* Responsive Design for Mobile */
 @media (max-width: 768px) {
-    .work-item {
-        flex-direction: column;
-    }
-
-    .work-item img {
-        width: 100%;
-        height: auto;
-        margin-right: 0; /* Remove margin on smaller screens */
+    .featured-work-items {
+        grid-template-columns: 1fr; /* Stack items vertically on mobile */
     }
 }

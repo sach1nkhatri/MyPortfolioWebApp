@@ -1,70 +1,62 @@
+/* Contact Section */
 .contact-section {
     height: auto; /* Let the height be determined by content */
-    width: 500px;
+    width: 100%; /* Full width on smaller screens */
+    max-width: 500px; /* Constrain maximum width */
     background-color: #f6f6f6; /* Main background color matching your theme */
-    margin: 2rem;
+    margin: 2rem auto; /* Center the section horizontally */
     border-radius: 20px;
     border: 5px solid #040404;
     color: #000000; /* Light text color */
     padding: 20px; /* Add some padding to ensure content isn't too close to edges */
 }
 
-.contact-section .section-container {
-    max-width: 1200px; /* Limit the maximum width */
-    margin: 0 auto; /* Center the container horizontally */
-    padding: 30px;
-    display: flex;
-    flex-direction: column; /* Stack elements vertically */
-    gap: 20px; /* Space between elements */
-    align-items: center;
-}
-
-.contact-section .section-container .contact-info {
-    text-align: center; /* Center text for better alignment */
-}
-
-.contact-section .section-container .contact-info h2 {
-    font-size: 36px;
-    margin-bottom: 10px;
-}
-
-.contact-section .section-container .contact-info p {
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-
+/* Contact Form */
 .contact-section .section-container .contact-form {
     background: #fff; /* Background color for the form area */
-    padding: 30px;
+    padding: 20px; /* Adjust padding for smaller screens */
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add a subtle shadow for better separation */
-    max-width: 600px;
     width: 100%; /* Ensure form takes full width of its container */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
 }
 
+/* Form Group */
+.contact-section .section-container .contact-form .form-group {
+    margin-bottom: 1.5rem; /* Space between form groups */
+}
+
+/* Form Group Label */
 .contact-section .section-container .contact-form .form-group label {
     color: #333; /* Darker text color for better readability */
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 8px; /* Space between label and input */
+    font-size: 16px; /* Adjust font size for readability */
 }
 
+/* Input and Textarea */
 .contact-section .section-container .contact-form .form-group input,
 .contact-section .section-container .contact-form .form-group textarea {
-    width: 100%;
+    width: 100%; /* Full width of the parent container */
     padding: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 12px; /* Space between input fields */
     background-color: #f0f0f0; /* Light background for input fields */
     border: 2px solid #ccc; /* Light border for input fields */
     color: #333; /* Dark text color for input fields */
     border-radius: 5px;
-    transition: border-color 0.3s ease-in-out;
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+    font-size: 16px; /* Adjust font size for readability */
+    transition: border-color 0.3s ease-in-out; /* Smooth transition for border color */
 }
 
+/* Input and Textarea Focus */
 .contact-section .section-container .contact-form .form-group input:focus,
 .contact-section .section-container .contact-form .form-group textarea:focus {
     border-color: #76ABAE; /* Match the border color with the section background */
+    outline: none; /* Remove default outline */
 }
 
+/* Submit Button */
 .contact-section .section-container .contact-form .submit-button {
     background-color: #76ABAE; /* Match the button color with the section background */
     color: #fff; /* Light text color */
@@ -72,37 +64,34 @@
     border-radius: 5px;
     padding: 14px 20px;
     font-size: 16px;
-    margin-left: 185px;
     cursor: pointer;
     transition: background-color 0.3s ease-in-out;
 }
 
+/* Submit Button Hover Effect */
 .contact-section .section-container .contact-form .submit-button:hover {
     background-color: #5a8a8e; /* Slightly darker shade for hover effect */
 }
-/* Social Link Section */
-.social-link {
-    text-align: center;
-    margin-top: -5rem;
-}
 
-.social-link h1 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-}
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+    .contact-section {
+        width: 90%; /* Increase width percentage for smaller screens */
+        padding: 1rem; /* Adjust padding for smaller screens */
+    }
 
-.social-links {
-    display: flex;
-    justify-content: center;
-    gap: 1.5rem;
-}
+    .contact-section .section-container .contact-form {
+        padding: 15px; /* Adjust padding for smaller screens */
+    }
 
-.social-links a img {
-    width: 40px;
-    height: 40px;
-    transition: transform 0.2s ease-in-out;
-}
+    .contact-section .section-container .contact-form .form-group input,
+    .contact-section .section-container .contact-form .form-group textarea {
+        padding: 10px; /* Adjust padding for smaller screens */
+        font-size: 14px; /* Adjust font size for smaller screens */
+    }
 
-.social-links a img:hover {
-    transform: scale(1.1);
+    .contact-section .section-container .contact-form .submit-button {
+        padding: 12px 16px; /* Adjust padding for smaller screens */
+        font-size: 14px; /* Adjust font size for smaller screens */
+    }
 }

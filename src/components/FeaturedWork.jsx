@@ -8,7 +8,7 @@ function FeaturedWork() {
     // Function to shuffle array and get 3 random works
     const getRandomWorks = () => {
         const shuffled = workData.sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, 3); // Select first 3 after shuffle
+        return shuffled.slice(0, 4); // Select first 3 after shuffle
     };
 
     const featuredWorks = getRandomWorks();

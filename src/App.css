@@ -4,17 +4,55 @@
 }
 
 header {
-  background-color: #f8f9fa; /* Slightly adjusted background color for better visibility */
+  background-color: #f8f9fa;
   padding: 20px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow for better separation */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
 }
 
 nav a {
   color: #000000;
-  margin: 0 10px;
   text-decoration: none;
-  font-weight: bold; /* Optional: Make links bold for better readability */
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Typing Animation */
+.typing-animation {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 3px solid #000000;
+  animation: typing 2s steps(30, end) forwards, blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 24ch;
+  }
+}
+
+@keyframes blink-caret {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: #000000;
+  }
 }
 
 footer {
@@ -28,10 +66,21 @@ footer p {
   margin: 0;
 }
 
-/* Responsive for Mobile */
 @media (max-width: 768px) {
+  header {
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  nav {
+    flex-direction: row;
+    gap: 10px;
+  }
+
   nav a {
-    display: block;
-    margin: 10px 0;
+    font-size: 1rem;
   }
 }

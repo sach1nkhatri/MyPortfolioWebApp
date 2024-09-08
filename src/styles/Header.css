@@ -1,3 +1,5 @@
+/* src/styles/Header.css */
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -9,6 +11,28 @@
 .logo {
     font-size: 24px;
     color: #090909;
+    white-space: nowrap; /* Prevents the text from wrapping */
+    overflow: hidden; /* Hides the text that overflows */
+    border-right: 3px solid #090909; /* Creates the cursor effect */
+    animation: typing 4s steps(40, end), blink-caret .75s step-end infinite;
+}
+
+@keyframes typing {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes blink-caret {
+    from, to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: #090909;
+    }
 }
 
 .nav ul {

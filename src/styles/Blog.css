@@ -1,10 +1,10 @@
-
 /* Blog Container */
 .blog {
     width: 100%;
     max-width: 1200px; /* Maximum width to prevent exceeding monitor width */
-    margin: 150px;
+    margin: 0 auto; /* Center the blog container */
     background-color: #f9f9f9;
+    padding: 2rem; /* Add padding for better spacing on smaller screens */
 }
 
 /* Blog Title */
@@ -31,6 +31,7 @@
     width: calc(30% - 2rem); /* 10% smaller than original */
     padding: 1rem;
     color: black;
+    margin-bottom: 13rem;
     box-sizing: border-box;
     transition: transform 0.2s ease-in-out;
 }
@@ -63,6 +64,8 @@
 }
 
 /* Responsive Styles */
+
+/* Medium Devices (Tablets, 768px and above) */
 @media (max-width: 1200px) {
     .blog {
         padding: 2% 3%; /* Reduce padding on smaller screens */
@@ -70,18 +73,33 @@
     .blog-posts {
         justify-content: space-evenly; /* Ensure even spacing for medium screens */
     }
-}
-
-@media (max-width: 768px) {
     .blog-post {
         width: calc(45% - 1rem); /* Adjust width for tablets */
     }
 }
 
-@media (max-width: 480px) {
+/* Small Devices (Mobile phones, 480px and below) */
+@media (max-width: 768px) {
+    .blog {
+        padding: 2rem 1rem; /* More compact padding for mobile devices */
+    }
     .blog-post {
         width: 100%; /* Full width for mobile */
+        margin-bottom: 2rem; /* Add spacing between blog posts */
     }
 }
 
-
+@media (max-width: 480px) {
+    .blog h1 {
+        font-size: 2rem; /* Adjust title font size for smaller screens */
+    }
+    .blog-post {
+        padding: 1rem; /* Reduce padding for smaller screens */
+    }
+    .blog-info h2 {
+        font-size: 1.2rem; /* Smaller heading size for mobile */
+    }
+    .blog-info p {
+        font-size: 0.85rem; /* Adjust font size for mobile readability */
+    }
+}

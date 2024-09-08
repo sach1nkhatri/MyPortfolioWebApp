@@ -17,14 +17,6 @@ export const workData = [
         description: `Khaja Khoj is your ultimate food hunt companion! Whether you're craving Nepali, Indian, Japanese, or American cuisine, Khaja Khoj connects you with a diverse selection of restaurants offering your favorite dishes. Our app not only helps you discover the best eateries but also provides comprehensive details such as ratings, user reviews, and menus to enhance your dining experience. Built using Kotlin and integrated with Firebase for real-time data, Khaja Khoj takes the stress out of finding your next meal.`
     },
     {
-        title: 'Simple Fitness Application in Kotlin',
-        img: require('../assets/stayfitbanner.png'),
-        year: '2024',
-        link: 'https://github.com/sach1nkhatri/StayFit2.0',
-        category: 'Android Application',
-        description: `Stay Fit is your ultimate fitness companion, designed in Kotlin to help you achieve your health and wellness goals. This all-in-one app features a BMI and BMR calculator, a workout planner, and a pedometer to track your daily steps. With Firebase integration, your data is securely stored and synced, ensuring your progress is always backed up and accessible. Stay Fit also includes personalized fitness plans and motivational features to help you stay on track, whether you’re a fitness newbie or an experienced athlete.`
-    },
-    {
         title: 'Simple Liquor Sales Application in Kotlin',
         img: require('../assets/beerapp.png'),
         year: '2024',
@@ -32,6 +24,15 @@ export const workData = [
         category: 'Android Application',
         description: `Introducing the Beer App, developed using Kotlin! This app is designed to enhance your beer-tasting experience with a range of features. It includes a robust Point of Sale (POS) system, allowing seamless transactions. Users can effortlessly track their purchase history, ensuring they never forget their favorite brews. The app also incorporates secure user authentication and login functionality using Firebase, providing a safe and personalized experience for every user. Whether you’re a casual drinker or a beer enthusiast, this app is your perfect companion for all things beer-related. Cheers! 🍻`
     },
+    {
+        title: 'Simple Fitness Application in Kotlin',
+        img: require('../assets/stayfitbanner.png'),
+        year: '2024',
+        link: 'https://github.com/sach1nkhatri/StayFit2.0',
+        category: 'Android Application',
+        description: `Stay Fit is your ultimate fitness companion, designed in Kotlin to help you achieve your health and wellness goals. This all-in-one app features a BMI and BMR calculator, a workout planner, and a pedometer to track your daily steps. With Firebase integration, your data is securely stored and synced, ensuring your progress is always backed up and accessible. Stay Fit also includes personalized fitness plans and motivational features to help you stay on track, whether you’re a fitness newbie or an experienced athlete.`
+    },
+
     {
         title: 'Text Encryption and Decryption Desktop Application in Python',
         img: require('../assets/decoder.png'),

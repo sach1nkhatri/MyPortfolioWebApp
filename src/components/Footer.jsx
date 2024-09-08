@@ -4,7 +4,16 @@ import '../styles/Footer.css';
 const Footer = () => {
     return (
         <footer className="footer">
-            <p>&copy; 2024 My Portfolio. All rights reserved. </p>
+            <p>
+                &copy; 2024{' '}
+                <a
+                    href="https://chilli-audioworks.web.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    My Portfolio
+                </a>. All rights reserved.
+            </p>
         </footer>
     );
 };

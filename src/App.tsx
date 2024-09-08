@@ -4,14 +4,14 @@ import Home from './components/Home';
 import Blog from './components/Blog';
 import Work from './components/Work';
 import './App.css';
-import Contact from "./components/Contact";
+import Contact from './components/Contact';
 
 function App() {
     return (
         <Router>
             <div className="app">
                 <header>
-                    <h1>My Portfolio</h1>
+                    <h1 className="typing-animation">Welcome To My Portfolio!!!</h1>
                     <nav>
                         <Link to="/">Home</Link>
                         <Link to="/blog">Blogs</Link>
@@ -28,7 +28,16 @@ function App() {
                 </Routes>
 
                 <footer>
-                    <p>© 2024 All rights reserved | Developed By Sachin Khatri</p>
+                    <p>
+                        © 2024 All rights reserved | Developed By{' '}
+                        <a
+                            href="https://chilli-audioworks.web.app/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Sachin Khatri
+                        </a>
+                    </p>
                 </footer>
             </div>
         </Router>
