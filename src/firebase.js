@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getAnalytics } from "firebase/analytics";
+import { getStorage } from "firebase/storage"; // Import the storage service
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -23,5 +24,5 @@ const database = getDatabase(app);
 
 // Optional: Initialize Firebase Analytics
 getAnalytics(app);
-export { app, database };
+export { app, database,getStorage };
 

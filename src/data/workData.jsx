@@ -5,7 +5,7 @@ export const workData = [
         img: require('../assets/CAW.png'),
         year: '2024',
         category: 'Web Application',
-        link: 'https://github.com/sach1nkhatri/chilleawd_frontend',
+        link: 'https://chilli-audioworks.web.app/',
         description: `Welcome to Chilies Audio Workstation (CAW), your new creative sanctuary where music meets technology, passion meets precision, and ideas transform into art. Built with the robust and reliable architecture of Spring Boot, powered by the relational strength of PostgreSQL, and brought to life with the dynamic responsiveness of React, CAW isn’t just another tool, it's a partner in your musical journey. Whether you're composing, producing, or performing, CAW empowers musicians of all levels to collaborate, learn, and share their music creations.`
     },
     {
