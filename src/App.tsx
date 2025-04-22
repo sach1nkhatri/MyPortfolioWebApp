@@ -5,6 +5,7 @@ import Home from './components/Home';
 import Blog from './components/Blog';
 import Work from './components/Work';
 import Contact from './components/Contact';
+import DetailPreview from './components/DetailPreview';
 import './App.css';
 
 function AnimatedRoutes() {
@@ -31,6 +32,7 @@ function AnimatedRoutes() {
                     <Route path="/" element={<Home />} />
                     <Route path="/blog" element={<Blog />} />
                     <Route path="/work" element={<Work />} />
+                    <Route path="/blog/:id" element={<DetailPreview />} />
                     <Route path="/contact" element={<Contact />} />
                 </Routes>
             </CSSTransition>
