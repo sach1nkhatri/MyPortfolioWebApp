@@ -2,7 +2,7 @@
 
 .featured-work-section {
     padding: 40px;
-    max-width: 900px;
+    max-width: 10000px;
     margin: auto;
 }
 
@@ -84,3 +84,19 @@
         height: auto;
     }
 }
+.app.dark .work-item {
+    background-color: #1b263b;
+    color: #e0e1dd;
+    box-shadow: 0 0 15px rgba(65, 90, 119, 0.8); /* glowing blue shadow */
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.app.dark .work-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 25px rgba(65, 90, 119, 1); /* stronger glow on hover */
+}
+
+.app.dark .year-tag {
+    background-color: #415a77;
+}
+

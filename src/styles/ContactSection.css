@@ -95,3 +95,23 @@
         font-size: 14px; /* Adjust font size for smaller screens */
     }
 }
+.app.dark .contact-section {
+    background-color: #1b263b;
+    border-color: #415a77;
+    color: #e0e1dd;
+}
+
+.app.dark .contact-form {
+    background-color: #0d1b2a;
+}
+
+.app.dark .contact-form input,
+.app.dark .contact-form textarea {
+    background-color: #1b263b;
+    border: 2px solid #415a77;
+    color: #e0e1dd;
+}
+
+.app.dark .contact-form .submit-button {
+    background-color: #4a90e2;
+}

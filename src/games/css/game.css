@@ -1,0 +1,39 @@
+.games-wrapper {
+    padding: 4rem 2rem;
+    background-color: rgba(91, 239, 200, 0.06);
+    min-height: 100vh;
+    color: #000;
+    text-align: center;
+}
+
+.games-header {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.games-subtext {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    color: #444;
+}
+
+.games-grid {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.game-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #18efcb;
+    text-decoration: none;
+    color: black;
+    transition: transform 0.25s ease, background-color 0.2s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-4px);
+    background-color: #e6fff9;
+}

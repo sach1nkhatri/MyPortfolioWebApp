@@ -1,0 +1,33 @@
+.immune-clash-wrapper {
+    background-color: #0d1b2a;
+    color: #fff;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.immune-clash-wrapper canvas {
+    background: #1b263b;
+    border: 2px solid #fff;
+    margin-top: 10px;
+}
+
+.immune-clash-wrapper #gameOver {
+    margin-top: 20px;
+}
+
+.immune-clash-wrapper button {
+    background-color: #18efcb;
+    border: none;
+    padding: 10px 20px;
+    margin-top: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.immune-clash-wrapper button:hover {
+    background-color: #11d4b0;
+}

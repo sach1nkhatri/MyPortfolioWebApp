@@ -1,7 +1,7 @@
 /* Work Container */
 .work {
     padding: 2rem;
-    max-width: 1200px; /* Increase max-width for better alignment on larger screens */
+    max-width: 1400px; /* Increase max-width for better alignment on larger screens */
     margin: 0 auto; /* Center the container */
     background-color: #f9f9f9;
     box-sizing: border-box;
@@ -102,4 +102,22 @@
     .featured-work-items {
         grid-template-columns: 1fr; /* Stack items vertically on mobile */
     }
+}
+
+
+.app.dark .work {
+    background-color: #0d1b2a;
+}
+
+.app.dark .work-item {
+    background-color: #1b263b;
+    color: #e0e1dd;
+}
+
+.app.dark .year-tag {
+    background-color: #778da9;
+}
+
+.app.dark .category {
+    color: #ced4da;
 }

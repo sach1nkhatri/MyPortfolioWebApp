@@ -1,14 +1,138 @@
 .footer {
-    background-color: #333;
-    color: white;
-    text-align: center;
-    padding: 10px 0;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
+    background-color: rgba(91, 239, 200, 0.06);
+    color: #000000;
+    padding: 4rem 2rem 2rem;
+    font-family: 'Segoe UI', sans-serif;
 }
 
-.footer p {
+.footer-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 3rem;
+    margin-bottom: 2rem;
+}
+
+.footer-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.footer-text-logo {
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+}
+
+.footer-columns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4rem;
+    flex: 1;
+    justify-content: space-evenly;
+}
+
+.footer-column {
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.footer-column h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+    color: #000000;
+}
+
+.footer-column a {
+    color: #000000;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+}
+
+.footer-column a:hover {
+    color: #18efcb;
+}
+
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    border-top: 1px solid rgb(0, 0, 0);
+    padding-top: 1.5rem;
+    font-size: 0.85rem;
+}
+
+.footer-bottom p {
     margin: 0;
-    font-size: 14px;
+    color: #000000;
+}
+
+.footer-socials {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.footer-socials img {
+    height: 24px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.footer-socials img:hover {
+    transform: scale(1.15);
+}
+
+/* --- Responsive Styles --- */
+@media (max-width: 768px) {
+    .footer {
+        padding: 3rem 1.5rem;
+    }
+
+    .footer-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2rem;
+    }
+
+    .footer-columns {
+        flex-direction: column;
+        gap: 2rem;
+        margin-top: 1.5rem;
+        width: 100%;
+    }
+
+    .footer-column {
+        width: 100%;
+    }
+
+    .footer-column h4 {
+        font-size: 1rem;
+    }
+
+    .footer-column a {
+        font-size: 0.9rem;
+    }
+
+    .footer-text-logo {
+        height: 42px;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 0.8rem;
+        text-align: center;
+        font-size: 0.8rem;
+    }
+
+    .footer-socials {
+        justify-content: center;
+        margin-top: 0;
+    }
 }

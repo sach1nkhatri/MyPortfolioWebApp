@@ -1,137 +1,154 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh; /* Full viewport height */
-}
-
-/* Container */
+/* === Home Page Container === */
 .home {
     width: 100%;
-    padding: 0 2%; /* Fluid horizontal padding */
+    max-width: 1500px; /* Wider container */
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    box-sizing: border-box;
 }
-/* Featured Works */
+
+/* === Intro Section === */
+.intro {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2.5rem 3rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    gap: 2rem;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* === Dark Mode Intro Glow === */
+.app.dark .intro {
+    background-color: #1b263b;
+    color: #e0e1dd;
+    box-shadow: 0 0 20px rgba(0, 191, 255, 0.2); /* soft blue glow */
+}
+
+/* === Intro Text === */
+.intro-text {
+    flex: 1;
+    min-width: 300px;
+}
+
+.intro-text h1 {
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.intro-text p {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    color: #444;
+}
+
+.app.dark .intro-text p {
+    color: #cbd5e1;
+}
+
+.intro-text button {
+    background-color: #fa8100;
+    color: white;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.intro-text button:hover {
+    background-color: #d96d00;
+}
+
+.app.dark .intro-text button {
+    background-color: #ff9b00;
+}
+
+.app.dark .intro-text button:hover {
+    background-color: #357ac7;
+}
+
+/* === Intro Image === */
+.intro-image {
+    flex: 0.8;
+    min-width: 280px;
+    text-align: center;
+}
+
+.intro-image img {
+    max-width: 260px;
+    width: 100%;
+    height: auto;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.intro-image img:hover {
+    transform: scale(1.05);
+}
+
+/* === Social Section === */
+.social-link {
+    text-align: center;
+    background: #f0f0f0;
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.social-link h1 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.social-links img {
+    width: 40px;
+    height: 40px;
+    transition: transform 0.3s ease;
+}
+
+.social-links img:hover {
+    transform: scale(1.15);
+}
+
+.app.dark .social-link {
+    background-color: #1b263b;
+    color: #e0e1dd;
+}
+
+/* === Featured Work Section === */
 .featured-work {
-    margin-top: 5%;
-    text-align: center; /* Center featured works */
+    text-align: center;
 }
 
 .featured-work h2 {
     font-size: 2rem;
     margin-bottom: 1rem;
 }
-.social-link {
-    text-align: center;
-    padding: 20px;
-    background-color: #f0f0f0; /* Light background color */
-    border-radius: 10px;
-    margin: 20px 0;
-}
-
-.social-link h1 {
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-.social-links {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-}
-
-.social-links a {
-    display: inline-block;
-}
-
-.social-links img {
-    width: 40px; /* Adjust icon size as needed */
-    height: 40px;
-    transition: opacity 0.3s ease-in-out;
-}
-
-.social-links img:hover {
-    opacity: 0.7; /* Slightly dim icons on hover */
-}
-/* Intro Image (moved outside .home) */
-
-/* Intro Section */
-.intro {
-    display: flex;
-    justify-content: space-between; /* Spread intro-text and intro-image */
-    align-items: center; /* Center content vertically */
-    padding: 5% 2%;
-    background: #fff;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-    flex-wrap: wrap; /* Ensure wrapping for smaller screens */
-}
-
-/* Intro Text */
-.intro-text {
-    flex: 1;
-    max-width: 70%; /* Use 60% of the container for text */
-    padding-right: 2%;
-    box-sizing: border-box;
-}
-
-.intro-text h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-}
-
-.intro-text p {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-}
-
-.intro-text button {
-    padding: 10px 20px;
-    font-size: 1rem;
-    background-color: #ff5252;
-    color: white;
-    border: none;
-    margin-top: 10px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-/* Intro Image */
-.intro-image {
-    flex: 0.4;
-    text-align: center;
-    box-sizing: border-box;
-}
-
-.intro-image img {
-    border-radius: 50%;
-    width: 80%; /* Adjust size as needed */
-    max-width: 250px; /* Maximum size */
-    height: auto; /* Maintain aspect ratio */
-}
-
-/* Mobile Compatibility */
 @media (max-width: 768px) {
     .intro {
-        flex-direction: column; /* Stack the text and image vertically */
-        text-align: center; /* Center content for small screens */
+        flex-direction: column;
+        text-align: center;
     }
 
     .intro-image {
-        order: -1; /* Move the image to the top */
+        order: -1; /* Move image to the top */
     }
 
     .intro-text {
-        max-width: 100%; /* Full width for text */
-        padding-right: 0; /* Remove right padding */
-    }
-
-    .intro-image img {
-        width: 60%; /* Adjust size for mobile */
-        max-width: 180px; /* Max width for mobile */
+        text-align: center;
     }
 }

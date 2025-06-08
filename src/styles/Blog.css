@@ -103,3 +103,25 @@
         font-size: 0.85rem; /* Adjust font size for mobile readability */
     }
 }
+.app.dark .blog {
+    background-color: #0d1b2a;
+}
+
+.app.dark .blog-post {
+    background-color: #1b263b;
+    color: #e0e1dd;
+}
+
+.app.dark .blog-info p {
+    color: #cbd5e1;
+}
+/* Dark mode glow effect for blog post cards */
+.app.dark .blog-post {
+    background-color: #1b263b;
+    color: #e0e1dd;
+    box-shadow: 0 0 15px rgba(0, 191, 255, 0.4); /* Light blue glow */
+}
+
+.app.dark .blog-info p {
+    color: #cbd5e1;
+}
