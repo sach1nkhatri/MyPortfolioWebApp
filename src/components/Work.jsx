@@ -33,6 +33,21 @@ function Work() {
         setLoadingImages(prev => ({ ...prev, [id]: true }));
     };
 
+    // Function to render technology tags
+    const renderTechTags = (technologies) => {
+        if (!technologies || technologies.length === 0) return null;
+        
+        return (
+            <div className="tech-tags">
+                {technologies.map((tech, index) => (
+                    <span key={index} className="tech-tag">
+                        {tech}
+                    </span>
+                ))}
+            </div>
+        );
+    };
+
     return (
         <div className="work">
             <h1>My Works</h1>
@@ -62,6 +77,7 @@ function Work() {
                                         <span className="category">{work.category}</span>
                                     </div>
                                     <p>{work.description}</p>
+                                    {renderTechTags(work.technologies)}
                                 </div>
                             </Link>
                         </div>

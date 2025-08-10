@@ -61,6 +61,7 @@
 /* Work Info */
 .work-info {
     text-align: center; /* Center align text */
+    width: 100%;
 }
 
 .work-info h2 {
@@ -95,6 +96,35 @@
     font-size: 14px;
     color: #666;
     line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+/* Technology Tags */
+.tech-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.tech-tag {
+    background-color: #fa8100;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(250, 129, 0, 0.2);
+}
+
+.tech-tag:hover {
+    background-color: #d96d00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(250, 129, 0, 0.3);
 }
 
 /* Responsive Design for Mobile */
@@ -102,9 +132,18 @@
     .featured-work-items {
         grid-template-columns: 1fr; /* Stack items vertically on mobile */
     }
+    
+    .tech-tags {
+        gap: 6px;
+    }
+    
+    .tech-tag {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
 }
 
-
+/* Dark Mode Styles */
 .app.dark .work {
     background-color: #0d1b2a;
 }
@@ -120,4 +159,15 @@
 
 .app.dark .category {
     color: #ced4da;
+}
+
+.app.dark .tech-tag {
+    background-color: #ff9b00;
+    color: #0d1b2a;
+    box-shadow: 0 2px 4px rgba(255, 155, 0, 0.3);
+}
+
+.app.dark .tech-tag:hover {
+    background-color: #ffb347;
+    box-shadow: 0 4px 8px rgba(255, 155, 0, 0.4);
 }
