@@ -19,12 +19,12 @@
   background: var(--paper);
   color: var(--ink);
   min-height: 100vh;
-  padding: 28px;
+  padding: clamp(16px, 3vw, 36px);
   font-family: "Gloria Hallelujah", "Shadows Into Light", cursive, sans-serif;
 }
 
 .paper-sheet {
-  max-width: 1280px;
+  width: min(1400px, 95vw);
   margin: 0 auto;
   background: var(--panel);
   border: 3px solid var(--ink);
@@ -60,6 +60,16 @@
   align-items: center;
   gap: 12px;
   letter-spacing: 1px;
+}
+
+.paper-brand-logo {
+  height: 32px;
+  width: auto;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 4px 8px;
+  background: #fffaf0;
+  box-shadow: 3px 3px 0 var(--ink);
 }
 
 .paper-nav {
@@ -398,6 +408,17 @@
 .paper-card-meta {
   color: var(--muted);
   font-size: 14px;
+}
+
+.paper-see-more {
+  margin-top: 6px;
+  font-weight: 600;
+  color: var(--ink);
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  border-bottom: 2px solid var(--ink);
+  width: fit-content;
 }
 
 .paper-spinner {

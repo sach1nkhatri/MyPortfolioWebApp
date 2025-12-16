@@ -42,7 +42,7 @@ const PaperHome = () => {
         <>
             <section className="paper-hero">
                 <div className="paper-hero-text">
-                    <h1>Hi, I'm Sachin — sketched on paper.</h1>
+                    <h1>Hi, I'm Sachin.</h1>
                     <p>
                         I live at the intersection of code, creativity, and intelligence. From playful UIs to
                         data-driven builds, I turn ideas into human-feeling products. This page is drawn to feel

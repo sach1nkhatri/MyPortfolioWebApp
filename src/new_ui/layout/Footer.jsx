@@ -6,8 +6,8 @@ const Footer = () => {
     return (
         <footer className="paper-footer">
             <div className="paper-footer-col">
-                <div style={{ fontSize: '24px', marginBottom: '6px' }}>PaperSite</div>
-                <p>Drawn with a digital Sharpie so pixels feel human.</p>
+                <div style={{ fontSize: '24px', marginBottom: '6px' }}>Paper Site · Sachin Khatri</div>
+                <p>Drawn with a digital Sharpie so pixels feel human — everything is a prototype.</p>
                 <p style={{ marginTop: '8px' }}>
                     Prefer the original look? <Link to="/classic">Classic UI</Link>
                 </p>
@@ -23,7 +23,7 @@ const Footer = () => {
             <div className="paper-footer-col">
                 <h5>Company</h5>
                 <ul>
-                    <li><Link to="/classic/games">Games</Link></li>
+                    <li><Link to="/games">Games</Link></li>
                     <li><Link to="/contact">Contact</Link></li>
                     <li><Link to="/work">Works</Link></li>
                 </ul>

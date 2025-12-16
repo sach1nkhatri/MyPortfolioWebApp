@@ -2,19 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../css/paper.css';
 
-const truncate = (text = '', limit = 140) => {
-    if (!text) return '';
-    return text.length > limit ? `${text.slice(0, limit).trim()}…` : text;
-};
-
 const PostCard = ({ post }) => {
     return (
         <Link to={`/blog/${post.id}`} className="paper-card paper-link">
             <img src={post.img} alt={post.title} className="paper-card-image" />
             <h3 className="paper-card-title">{post.title}</h3>
             <div className="paper-card-meta">{post.date} • {post.category}</div>
-            <p className="paper-card-body">{truncate(post.description)}</p>
-            <span className="paper-see-more">See more →</span>
+            <p className="paper-card-body">{post.description}</p>
         </Link>
     );
 };
