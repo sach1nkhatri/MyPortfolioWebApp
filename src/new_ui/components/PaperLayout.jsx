@@ -7,7 +7,7 @@ const PaperLayout = ({ children }) => {
         <div className="paper-page">
             <div className="paper-sheet">
                 <header className="paper-header">
-                    <div className="paper-brand">✏️ PaperPortfolio</div>
+                    <div className="paper-brand">PaperPortfolio</div>
                     <nav className="paper-nav">
                         <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
                         <NavLink to="/blog" className={({ isActive }) => isActive ? 'active' : ''}>Blog</NavLink>
