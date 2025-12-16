@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PaperSite · Blogs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Shadows+Into+Light&display=swap"
+    rel="stylesheet"
+  >
+  <style>
+    :root {
+      --paper: #f7f1e6;
+      --panel: #fffdf7;
+      --ink: #111827;
+      --accent: #f97316;
+      --shadow: 0 18px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Gloria Hallelujah", "Shadows Into Light", cursive, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .sheet {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 3px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sheet::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border: 2px dashed rgba(17, 24, 39, 0.35);
+      border-radius: 18px;
+      transform: rotate(-0.7deg);
+      pointer-events: none;
+    }
+
+    header {
+      padding: 20px 24px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand {
+      font-size: 26px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--ink);
+      padding: 8px 12px;
+      border: 2px solid var(--ink);
+      border-radius: 12px;
+      box-shadow: 3px 3px 0 var(--ink);
+      background: #fffaf0;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    nav a:hover,
+    nav a.active {
+      transform: translate(-2px, -2px) rotate(-1deg);
+      box-shadow: 5px 5px 0 var(--accent);
+    }
+
+    .hero {
+      padding: 18px 24px 10px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(30px, 5vw, 42px);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .hero p {
+      font-size: 18px;
+      line-height: 1.4;
+    }
+
+    .grid {
+      padding: 10px 24px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: #fffef9;
+      border: 3px solid var(--ink);
+      border-radius: 18px;
+      box-shadow: 5px 6px 0 var(--ink);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transform: rotate(-1deg);
+      position: relative;
+      min-height: 420px;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 2px dashed rgba(17, 24, 39, 0.2);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+
+    .card img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 2px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    .card h3 {
+      font-size: 20px;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .meta {
+      color: rgba(17, 24, 39, 0.7);
+      font-size: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .summary {
+      font-size: 15px;
+      line-height: 1.4;
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <header>
+      <div class="brand">✏️ PaperPortfolio</div>
+      <nav>
+        <a href="papersite.html">Home</a>
+        <a class="active" href="blog.html">Blog</a>
+        <a href="work.html">Work</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <h1>Notebook Blogs</h1>
+      <p>Hand-drawn stories, snapshots, and class notes—kept on a digital paper page.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=900&q=80" alt="Friends taking a selfie">
+        <h3>Selfie</h3>
+        <div class="meta">2025-06-09 · Memories</div>
+        <p class="summary">A late-night snapshot with the crew—proof that the best ideas start after dusk.</p>
+      </article>
+      <article class="card">
+        <img src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?auto=format&fit=crop&w=900&q=80" alt="Classroom session">
+        <h3>Design Thinking Class</h3>
+        <div class="meta">2025-06-09 · Class</div>
+        <p class="summary">Capturing a full room of minds prototyping, sketching, and iterating on big ideas.</p>
+      </article>
+      <article class="card">
+        <img src="https://images.unsplash.com/photo-1529333166433-8da0eaf59e33?auto=format&fit=crop&w=900&q=80" alt="Students in class">
+        <h3>Enjoying My Class</h3>
+        <div class="meta">2025-06-09 · Enjoyment</div>
+        <p class="summary">Smiles, peace signs, and code—documenting another good day of building together.</p>
+      </article>
+    </section>
+  </div>
+</body>
+</html>

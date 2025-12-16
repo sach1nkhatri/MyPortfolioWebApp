@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PaperSite · Sketchbook Portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Shadows+Into+Light&display=swap"
+    rel="stylesheet"
+  >
+  <style>
+    :root {
+      --paper: #f7f1e6;
+      --ink: #111827;
+      --gray: #1f2937;
+      --accent: #f97316;
+      --shadow: 0 18px 32px rgba(0, 0, 0, 0.25);
+      --panel: #fffdf7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Gloria Hallelujah", "Shadows Into Light", cursive, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 28px;
+    }
+
+    .sheet {
+      max-width: 1280px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 3px solid var(--ink);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .sheet::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border: 2px dashed rgba(17, 24, 39, 0.35);
+      border-radius: 20px;
+      pointer-events: none;
+      transform: rotate(-0.5deg);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 26px 8px;
+      gap: 16px;
+    }
+
+    .brand {
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: 1px;
+    }
+
+    nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--ink);
+      padding: 8px 12px;
+      border: 2px solid var(--ink);
+      border-radius: 12px;
+      box-shadow: 3px 3px 0 var(--ink);
+      background: #fffaf0;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    nav a:hover {
+      transform: translate(-2px, -2px) rotate(-1deg);
+      box-shadow: 5px 5px 0 var(--accent);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      padding: 28px;
+      gap: 24px;
+      align-items: center;
+    }
+
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: flex-start; }
+    }
+
+    .hero-text {
+      padding: 16px;
+      border: 3px solid var(--ink);
+      border-radius: 18px;
+      background: #fff8ee;
+      box-shadow: 5px 6px 0 var(--ink);
+      transform: rotate(-1deg);
+    }
+
+    .hero-text h1 {
+      font-size: clamp(32px, 5vw, 46px);
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .hero-text p {
+      font-size: 18px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      background: #ffe9d6;
+      box-shadow: 4px 5px 0 var(--ink);
+      text-decoration: none;
+      color: var(--ink);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .cta:hover {
+      transform: translate(-2px, -2px) rotate(-1deg);
+      box-shadow: 6px 6px 0 var(--accent);
+    }
+
+    .hero-portrait {
+      justify-self: center;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      border: 4px solid var(--ink);
+      background: radial-gradient(circle at 30% 30%, #fff, #dfe7ef);
+      box-shadow: 6px 8px 0 var(--ink);
+      position: relative;
+      overflow: hidden;
+      transform: rotate(1deg);
+    }
+
+    .hero-portrait::after {
+      content: "your photo";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: rgba(17, 24, 39, 0.6);
+      letter-spacing: 2px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 24px;
+      margin: 6px 0 12px;
+      letter-spacing: 1px;
+    }
+
+    .works {
+      padding: 10px 24px 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: #fffef9;
+      border: 3px solid var(--ink);
+      border-radius: 16px;
+      box-shadow: 5px 6px 0 var(--ink);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transform: rotate(-1deg);
+      position: relative;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 2px dashed rgba(17, 24, 39, 0.2);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+
+    .thumb {
+      height: 140px;
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      background: repeating-linear-gradient(
+        -5deg,
+        rgba(17, 24, 39, 0.08) 0 12px,
+        rgba(17, 24, 39, 0.02) 12px 24px
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: rgba(17, 24, 39, 0.65);
+    }
+
+    .card h4 {
+      font-size: 18px;
+      letter-spacing: 0.5px;
+    }
+
+    .card p {
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .social {
+      padding: 20px 24px 28px;
+      text-align: center;
+    }
+
+    .social-icons {
+      display: inline-flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .social-icons a {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--ink);
+      border-radius: 12px;
+      background: #fffaf0;
+      box-shadow: 4px 4px 0 var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 18px;
+      transform: rotate(-4deg);
+    }
+
+    footer {
+      padding: 16px 24px 24px;
+      border-top: 2px dashed rgba(17, 24, 39, 0.35);
+      display: grid;
+      grid-template-columns: 1.3fr repeat(3, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      footer { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      footer { grid-template-columns: 1fr; }
+    }
+
+    .footer-col h5 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 15px;
+    }
+
+    .footer-col ul li a {
+      color: var(--ink);
+      text-decoration: none;
+      border-bottom: 2px dotted transparent;
+    }
+
+    .footer-col ul li a:hover {
+      border-color: var(--accent);
+    }
+
+    .legal {
+      grid-column: 1 / -1;
+      font-size: 14px;
+      opacity: 0.7;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <header>
+      <div class="brand">✏️ PaperPortfolio</div>
+      <nav>
+        <a href="#">About</a>
+        <a href="blog.html">Blog</a>
+        <a href="work.html">Work</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Hi, I'm a sketchy human on paper.</h1>
+        <p>
+          I live at the intersection of code, creativity, and scribbles.
+          From playful UIs to data-driven builds, I turn ideas into human-feeling products.
+          This page is drawn to feel like a notebook you can walk through.
+        </p>
+        <div class="cta-row" style="display:flex; gap:12px; flex-wrap:wrap;">
+          <a class="cta" href="#">Download My Resume</a>
+          <a class="cta" style="background:#e0f2fe;" href="blog.html">Read My Blog</a>
+          <a class="cta" style="background:#fff;" href="work.html">See My Work</a>
+        </div>
+      </div>
+      <div class="hero-portrait"></div>
+    </section>
+
+    <section class="works">
+      <h2 class="section-title">Featured Works (sketched)</h2>
+      <div class="grid">
+        <article class="card">
+          <div class="thumb">project scribble</div>
+          <h4>Simple Calendar</h4>
+          <p>Hand-drawn date grids with just enough ink to keep you on track.</p>
+        </article>
+        <article class="card">
+          <div class="thumb">dashboard doodle</div>
+          <h4>Power Monitor</h4>
+          <p>Bright, messy charts that still tell a story about your watts.</p>
+        </article>
+        <article class="card">
+          <div class="thumb">stacked coins</div>
+          <h4>Gold & Silver</h4>
+          <p>Playful UI for tracking shiny things with sketchy precision.</p>
+        </article>
+        <article class="card">
+          <div class="thumb">neon shapes</div>
+          <h4>Stay Fit</h4>
+          <p>A lively fitness board with handwritten cues and badges.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="social">
+      <h2 class="section-title">Connect With Me On</h2>
+      <div class="social-icons">
+        <a href="#" aria-label="Instagram">ig</a>
+        <a href="#" aria-label="GitHub">gh</a>
+        <a href="#" aria-label="YouTube">yt</a>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-col">
+        <div style="font-size:24px; margin-bottom:6px;">PaperSite</div>
+        <p>Drawn with a digital Sharpie so pixels feel human.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Product</h5>
+        <ul>
+          <li><a href="#">AttenAI</a></li>
+          <li><a href="#">ChilliAudioworks</a></li>
+          <li><a href="#">Khaja Khoj</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Company</h5>
+        <ul>
+          <li><a href="#">Games</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Works</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Resources</h5>
+        <ul>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">Assets</a></li>
+        </ul>
+      </div>
+      <div class="legal">© 2025 | PaperPortfolio | Built By Sachin Khatri | • All Rights Reserved.</div>
+    </footer>
+  </div>
+</body>
+</html>
