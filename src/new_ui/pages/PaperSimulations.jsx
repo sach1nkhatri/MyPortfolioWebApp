@@ -31,6 +31,7 @@ const PaperSimulations = () => {
         >
             <div className="paper-card-meta">
                 <span className="paper-pill">{item.type}</span>
+                <span className="paper-open-note">Opens in new tab ↗</span>
             </div>
             <h3 className="paper-card-title">{item.title}</h3>
             <p className="paper-card-body">{item.summary}</p>
@@ -43,7 +44,7 @@ const PaperSimulations = () => {
             <section className="paper-section" style={{ paddingBottom: '12px' }}>
                 <div className="paper-hero-text" style={{ transform: 'rotate(-0.5deg)', margin: '0 12px' }}>
                     <h1 style={{ fontSize: 'clamp(30px, 5vw, 42px)' }}>Simulations &amp; Games Arcade</h1>
-                    <p>Paper-themed labs and arcades—launch any sketchy sim or mini-game in a fresh tab.</p>
+                    <p>Launch interactive labs and arcades in a new tab—experiments, puzzles, and quick games.</p>
                 </div>
             </section>
 

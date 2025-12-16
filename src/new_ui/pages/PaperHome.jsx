@@ -60,7 +60,7 @@ const PaperHome = () => {
             </section>
 
             <section className="paper-section">
-                <h2 className="paper-section-title">Featured Works (sketched)</h2>
+                <h2 className="paper-section-title">Featured Works</h2>
                 {loading ? (
                     <Spinner />
                 ) : (

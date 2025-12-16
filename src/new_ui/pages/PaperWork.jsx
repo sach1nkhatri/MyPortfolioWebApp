@@ -32,8 +32,8 @@ const PaperWork = () => {
         <>
             <section className="paper-section" style={{ paddingBottom: '12px' }}>
                 <div className="paper-hero-text" style={{ transform: 'rotate(-0.5deg)', margin: '0 12px' }}>
-                    <h1 style={{ fontSize: 'clamp(30px, 5vw, 42px)' }}>Sketchbook Works</h1>
-                    <p>Projects penciled into a digital notebook—playful, imperfect, and human.</p>
+                    <h1 style={{ fontSize: 'clamp(30px, 5vw, 42px)' }}>Works</h1>
+                    <p>Products and experiments built with React, Node, Flask, Dart, and more—real, usable builds with some personality.</p>
                 </div>
             </section>
 

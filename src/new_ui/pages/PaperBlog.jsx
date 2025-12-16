@@ -33,10 +33,9 @@ const PaperBlog = () => {
         <>
             <section className="paper-section" style={{ paddingBottom: '12px' }}>
                 <div className="paper-hero-text" style={{ transform: 'rotate(-0.5deg)', margin: '0 12px' }}>
-                    <h1 style={{ fontSize: 'clamp(30px, 5vw, 42px)' }}>Notebook Blogs</h1>
-                    <p>Hand-drawn stories, snapshots, and class notes—kept on a digital paper page.</p>
-                </div>
-            </section>
+                    <h1 style={{ fontSize: 'clamp(30px, 5vw, 42px)' }}>Blog</h1>
+            </div>
+        </section>
 
             <section className="paper-section">
                 {loading ? (

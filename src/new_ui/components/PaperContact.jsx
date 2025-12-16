@@ -50,7 +50,7 @@ const PaperContact = () => {
         <PaperLayout>
             <section className="paper-section" style={{ paddingBottom: '6px' }}>
                 <div className="paper-hero-text" style={{ margin: '0 12px', transform: 'rotate(-0.4deg)' }}>
-                    <h1 style={{ fontSize: 'clamp(30px, 5vw, 42px)' }}>Let's scribble a message together.</h1>
+                    <h1 style={{ fontSize: 'clamp(30px, 5vw, 42px)' }}>scribble a message together.</h1>
                     <p>Drop a note on this paper page—no pixels were left too perfect in the making.</p>
                 </div>
             </section>
