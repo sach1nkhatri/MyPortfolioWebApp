@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Road Rash Tribute</title>
+  <style>
+    :root {
+      --bg: #0b0f1d;
+      --hud: #121828;
+      --line: #1f2a44;
+      --text: #e9f3ff;
+      --accent: #62f08f;
+      --danger: #ff6b6b;
+      --gauge: #161c2b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    #hudBar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(180deg, #0d1222 0%, #090b15 90%);
+      border-top: 4px solid var(--line);
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.6);
+      display: grid;
+      grid-template-columns: 1fr 140px 1fr;
+      gap: 10px;
+      padding: 10px 14px;
+      z-index: 5;
+    }
+    .panel {
+      background: var(--hud);
+      border: 2px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
+      font-size: 12px;
+      letter-spacing: 0.7px;
+    }
+    .panel h2 { margin: 0 0 6px 0; font-size: 12px; color: var(--accent); }
+    .bar { height: 12px; background: #0b0f18; border: 1px solid #2c374c; border-radius: 4px; overflow: hidden; margin: 4px 0; }
+    .bar div { height: 100%; background: linear-gradient(90deg, #62f08f, #b5ff4f); width: 100%; }
+    #rpm {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #1f2436, #111623 60%);
+      border: 3px solid #2f3a52;
+      box-shadow: inset 0 0 16px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+    }
+    #rpm .needle {
+      position: absolute;
+      width: 2px;
+      height: 58px;
+      background: #ff4b4b;
+      bottom: 60px;
+      left: 59px;
+      transform-origin: 50% 58px;
+      transform: rotate(-120deg);
+      box-shadow: 0 0 8px rgba(255,75,75,0.6);
+    }
+    #rpm .center {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #d9e6ff;
+      bottom: 56px; left: 56px;
+    }
+    #rpm .tick {
+      position: absolute;
+      width: 3px; height: 10px;
+      background: #cdd9ec;
+      left: 58px; bottom: 108px;
+      transform-origin: 1px 52px;
+    }
+    #toast {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 14px;
+      background: rgba(0,0,0,0.65);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 160ms ease;
+      pointer-events: none;
+      z-index: 6;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="hudBar">
+    <div class="panel">
+      <h2>PLAYER</h2>
+      Speed: <span id="speedVal">0</span> km/h<br>
+      Lane: <span id="laneVal">1</span><br>
+      Lives: <span id="livesVal">3</span><br>
+      Health:
+      <div class="bar"><div id="healthBar"></div></div>
+      Traffic: <span id="trafficVal">LIGHT</span>
+    </div>
+    <div class="panel" style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <div id="rpm">
+        <div class="needle" id="needle"></div>
+        <div class="center"></div>
+        <!-- ticks -->
+        <div class="tick" style="transform:rotate(-100deg) translateY(-2px)"></div>
+        <div class="tick" style="transform:rotate(-60deg) translateY(-2px)"></div>
+        <div class="tick" style="transform:rotate(-20deg) translateY(-2px)"></div>
+        <div class="tick" style="transform:rotate(20deg) translateY(-2px)"></div>
+        <div class="tick" style="transform:rotate(60deg) translateY(-2px)"></div>
+        <div class="tick" style="transform:rotate(100deg) translateY(-2px)"></div>
+      </div>
+      <div>SCORE <span id="scoreVal">0</span></div>
+      <div>TIME <span id="timeVal">0.0</span>s</div>
+    </div>
+    <div class="panel">
+      <h2>RIVAL</h2>
+      Status: <span id="statusVal">Racing</span><br>
+      Boost: <span id="boostVal">OK</span><br>
+      Rival:
+      <div class="bar"><div id="rivalBar" style="background:linear-gradient(90deg,#62f08f,#74c7ff)"></div></div>
+      Course: <span id="courseVal">OPEN</span>
+    </div>
+  </div>
+  <div id="toast">Go!</div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let w, h;
+      function resize() {
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = w;
+        canvas.height = h;
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      const speedVal = document.getElementById("speedVal");
+      const laneVal = document.getElementById("laneVal");
+      const livesVal = document.getElementById("livesVal");
+      const trafficVal = document.getElementById("trafficVal");
+      const scoreVal = document.getElementById("scoreVal");
+      const timeVal = document.getElementById("timeVal");
+      const statusVal = document.getElementById("statusVal");
+      const boostVal = document.getElementById("boostVal");
+      const courseVal = document.getElementById("courseVal");
+      const needle = document.getElementById("needle");
+      const healthBar = document.getElementById("healthBar");
+      const rivalBar = document.getElementById("rivalBar");
+      const toast = document.getElementById("toast");
+
+      const key = {};
+      document.addEventListener("keydown", e => key[e.code] = true);
+      document.addEventListener("keyup", e => key[e.code] = false);
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.style.opacity = "1";
+        clearTimeout(showToast.t);
+        showToast.t = setTimeout(() => toast.style.opacity = "0", 1200);
+      }
+
+      // Road segments for pseudo-3D
+      const segmentLength = 20;
+      const segments = [];
+      const totalSegments = 400;
+      for (let i = 0; i < totalSegments; i++) {
+        segments.push({
+          z: i * segmentLength,
+          curve: Math.sin(i * 0.05) * 0.8,
+          y: Math.sin(i * 0.04) * 10
+        });
+      }
+
+      const lanes = 3;
+      const laneSpacing = 0.9; // normalized lateral distance between lanes
+      const roadWidth = 1600;
+      const camera = { x: 0, y: 120, z: 0, depth: 1.2 };
+      const player = {
+        x: 0, // normalized lateral offset (-..+)
+        lane: 1,
+        targetLane: 1,
+        speed: 140,
+        targetSpeed: 140,
+        maxSpeed: 240,
+        health: 1,
+        lives: 3,
+        score: 0,
+        alive: true
+      };
+      const rival = { x: 0, lane: 1, z: 200, health: 1 };
+      rival.x = laneToX(rival.lane);
+      const obstacles = [];
+      const orbs = [];
+      let spawnTimer = 0;
+      let orbTimer = 0;
+      let time = 0;
+      let last = performance.now();
+
+      function project(x, y, z) {
+        const dz = z - camera.z;
+        const scale = camera.depth / dz;
+        return {
+          screen: {
+            x: w / 2 + scale * (x - camera.x) * w / 2,
+            y: h / 2 - scale * (y - camera.y) * h / 2,
+            w: scale * roadWidth * 0.5
+          },
+          scale
+        };
+      }
+
+      function laneToX(laneIndex) {
+        return (laneIndex - (lanes - 1) / 2) * laneSpacing;
+      }
+
+      function spawnObstacle() {
+        const lane = Math.floor(Math.random() * lanes);
+        obstacles.push({ lane, x: laneToX(lane), z: camera.z + 600, w: 30, h: 40, color: Math.random() > 0.5 ? "#ff6b6b" : "#74c7ff" });
+      }
+
+      function spawnOrb() {
+        const lane = Math.floor(Math.random() * lanes);
+        orbs.push({ lane, x: laneToX(lane), z: camera.z + 700, pulse: Math.random() * Math.PI * 2 });
+      }
+
+      function update(dt) {
+        time += dt;
+        if (key["ArrowUp"]) player.targetSpeed = Math.min(player.maxSpeed, player.targetSpeed + 140 * dt);
+        if (key["ArrowDown"]) player.targetSpeed = Math.max(40, player.targetSpeed - 160 * dt);
+        // smooth toward target lane
+        player.x += (laneToX(player.targetLane) - player.x) * 6 * dt;
+        player.lane = player.targetLane;
+
+        player.speed += (player.targetSpeed - player.speed) * 0.06;
+        camera.x = player.x * (roadWidth * 0.25);
+        camera.z += player.speed * dt;
+        if (camera.z > segments[segments.length - 1].z) camera.z = 0;
+
+        spawnTimer -= dt;
+        if (spawnTimer <= 0) {
+          spawnObstacle();
+          spawnTimer = Math.max(0.6, 1.8 - player.speed / 200);
+        }
+        orbTimer -= dt;
+        if (orbTimer <= 0) {
+          spawnOrb();
+          orbTimer = 1.8;
+        }
+
+        obstacles.forEach(o => {
+          o.z -= player.speed * dt;
+          if (o.z < camera.z - 200) o.z += totalSegments * segmentLength;
+        });
+        orbs.forEach(o => {
+          o.z -= player.speed * dt;
+          if (o.z < camera.z - 200) o.z += totalSegments * segmentLength;
+        });
+
+        // collisions (simple distance in lane and depth)
+        obstacles.forEach(o => {
+          const dz = o.z - camera.z;
+          if (dz > 0 && dz < 50 && Math.abs(o.x - player.x) < laneSpacing * 0.5) {
+            player.health = Math.max(0, player.health - 0.25);
+            player.lives = Math.max(0, Math.ceil(player.health * 3));
+            if (player.health <= 0) player.alive = false;
+            o.z = camera.z - 300; // move away after hit
+          }
+        });
+
+        for (let i = orbs.length - 1; i >= 0; i--) {
+          const o = orbs[i];
+          const dz = o.z - camera.z;
+          if (dz > 0 && dz < 40 && Math.abs(o.x - player.x) < laneSpacing * 0.5) {
+            player.score += 100;
+            orbs.splice(i, 1);
+          }
+        }
+
+        rival.z -= (player.speed * 0.8) * dt;
+        // occasional lane change for rival
+        if (Math.random() < 0.01) {
+          const newLane = Math.floor(Math.random() * lanes);
+          rival.x += (laneToX(newLane) - rival.x) * 0.4;
+        }
+        if (rival.z < camera.z + 80) rival.z += 800;
+        if (player.alive) player.score += dt * 15;
+
+        // HUD updates
+        speedVal.textContent = Math.round(player.speed);
+        laneVal.textContent = (Math.round((player.x + 1.2) / 0.8) + 1);
+        livesVal.textContent = player.lives;
+        trafficVal.textContent = obstacles.length > 5 ? "HEAVY" : "LIGHT";
+        scoreVal.textContent = Math.round(player.score);
+        timeVal.textContent = time.toFixed(1);
+        statusVal.textContent = player.alive ? "Racing" : "Down";
+        boostVal.textContent = player.speed > 200 ? "HOT" : "OK";
+        courseVal.textContent = "OPEN";
+        healthBar.style.width = `${player.health * 100}%`;
+        rivalBar.style.width = `${Math.max(0, rival.health) * 100}%`;
+        const rpmAngle = -120 + (player.speed / player.maxSpeed) * 220;
+        needle.style.transform = `rotate(${rpmAngle}deg)`;
+      }
+
+      function drawBackground() {
+        // sky and distant mountains
+        const grad = ctx.createLinearGradient(0, 0, 0, h * 0.6);
+        grad.addColorStop(0, "#93b6ff");
+        grad.addColorStop(1, "#6d85b6");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h * 0.6);
+
+        ctx.fillStyle = "#5a7aa8";
+        for (let i = 0; i < 6; i++) {
+          const baseY = h * 0.5 + Math.sin(i) * 20;
+          const baseX = (i / 6) * w;
+          ctx.beginPath();
+          ctx.moveTo(baseX - 160, baseY + 40);
+          ctx.lineTo(baseX + 120, baseY - 120);
+          ctx.lineTo(baseX + 320, baseY + 60);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        ctx.fillStyle = "#1e552c";
+        ctx.fillRect(0, h * 0.55, w, h * 0.45);
+      }
+
+      function drawRoad() {
+        const baseIndex = Math.floor(camera.z / segmentLength);
+        const maxDraw = 200;
+        let x = 0, dx = 0;
+        for (let n = 0; n < 200; n++) {
+          const seg = segments[(baseIndex + n) % segments.length];
+          const seg2 = segments[(baseIndex + n + 1) % segments.length];
+          const z1 = seg.z - (camera.z % segmentLength);
+          const z2 = seg2.z - (camera.z % segmentLength);
+          x += dx;
+          dx += seg.curve * 0.0015;
+          const p1 = project(x, seg.y + camera.y, z1);
+          const p2 = project(x + dx, seg2.y + camera.y, z2);
+
+          if (p1.screen.y >= p2.screen.y) continue;
+          ctx.fillStyle = n % 2 === 0 ? "#303540" : "#2a2f38";
+          ctx.beginPath();
+          ctx.moveTo(p1.screen.x - p1.screen.w, p1.screen.y);
+          ctx.lineTo(p1.screen.x + p1.screen.w, p1.screen.y);
+          ctx.lineTo(p2.screen.x + p2.screen.w, p2.screen.y);
+          ctx.lineTo(p2.screen.x - p2.screen.w, p2.screen.y);
+          ctx.closePath();
+          ctx.fill();
+
+          // lane stripes
+          ctx.strokeStyle = "rgba(255,255,0,0.6)";
+          ctx.lineWidth = Math.max(1, p1.scale * 30);
+          ctx.setLineDash([40, 40]);
+          ctx.beginPath();
+          ctx.moveTo(p1.screen.x, p1.screen.y);
+          ctx.lineTo(p2.screen.x, p2.screen.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+
+      function drawObjects(list, drawFn) {
+        list.forEach(obj => {
+          const p = project(obj.x * (roadWidth / lanes), 20, obj.z - camera.z);
+          if (p.screen.y > h || p.screen.y < 0) return;
+          drawFn(p.screen.x, p.screen.y, p.scale);
+        });
+      }
+
+      function drawCars() {
+        drawObjects(obstacles, (x, y, s) => {
+          const wCar = 50 * s;
+          const hCar = 80 * s;
+          ctx.fillStyle = "#111";
+          ctx.fillRect(x - wCar / 2, y - hCar, wCar, hCar);
+          ctx.fillStyle = "#ccc";
+          ctx.fillRect(x - wCar / 2, y - hCar + 10, wCar, 6);
+        });
+      }
+
+      function drawOrbs() {
+        drawObjects(orbs, (x, y, s) => {
+          ctx.fillStyle = "rgba(98,240,143,0.8)";
+          ctx.beginPath();
+          ctx.arc(x, y - 40 * s, 12 * s, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      function drawPlayerBike() {
+        ctx.save();
+        ctx.translate(w / 2 + player.x * 120, h * 0.7);
+        ctx.scale(1.2, 1.2);
+        ctx.fillStyle = "#0d0f16";
+        ctx.beginPath(); ctx.arc(-20, 28, 16, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(22, 28, 16, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.25)";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(-20, 28, 16, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(22, 28, 16, 0, Math.PI * 2); ctx.stroke();
+        const grad = ctx.createLinearGradient(-10, 0, 40, 20);
+        grad.addColorStop(0, "#6af0ff");
+        grad.addColorStop(1, "#ff6b6b");
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(-24, 10); ctx.lineTo(30, 0); ctx.lineTo(48, 10); ctx.lineTo(18, 20); ctx.lineTo(-12, 22); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "rgba(0,0,0,0.65)";
+        ctx.beginPath(); ctx.arc(5, -6, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.fillRect(-4, 2, 24, 10);
+        ctx.restore();
+      }
+
+      function drawRival() {
+        const p = project(rival.x * (roadWidth / lanes), 20, rival.z - camera.z);
+        if (p.screen.y > h || p.screen.y < 0) return;
+        const s = p.scale * 60;
+        ctx.fillStyle = "#ffd166";
+        ctx.fillRect(p.screen.x - s / 2, p.screen.y - s, s, s);
+        ctx.fillStyle = "#ff6b6b";
+        ctx.fillRect(p.screen.x - s / 2, p.screen.y - s + s * 0.6, s, s * 0.4);
+      }
+
+      function loop(now) {
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        if (player.alive) update(dt);
+
+        ctx.clearRect(0, 0, w, h);
+        drawBackground();
+        drawRoad();
+        drawCars();
+        drawOrbs();
+        drawRival();
+        drawPlayerBike();
+
+        requestAnimationFrame(loop);
+      }
+
+      document.addEventListener("keydown", e => {
+        if (e.code === "KeyR") {
+          obstacles.length = 0; orbs.length = 0;
+          player.health = 1; player.lives = 3; player.alive = true; player.speed = 140; player.targetSpeed = 140; player.score = 0; time = 0;
+          healthBar.style.width = "100%";
+          showToast("Restart");
+        }
+        if (e.code === "ArrowLeft") player.targetLane = Math.max(0, player.targetLane - 1);
+        if (e.code === "ArrowRight") player.targetLane = Math.min(lanes - 1, player.targetLane + 1);
+      });
+
+      showToast("Road Rash Tribute: Arrow keys to ride, R to restart");
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

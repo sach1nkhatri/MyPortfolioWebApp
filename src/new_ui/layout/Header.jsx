@@ -14,7 +14,7 @@ const Header = () => {
                 <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
                 <NavLink to="/blog" className={({ isActive }) => isActive ? 'active' : ''}>Blog</NavLink>
                 <NavLink to="/work" className={({ isActive }) => isActive ? 'active' : ''}>Work</NavLink>
-                <NavLink to="/games" className={({ isActive }) => isActive ? 'active' : ''}>Games</NavLink>
+                <NavLink to="/simulations" className={({ isActive }) => isActive ? 'active' : ''}>Simulations &amp; Games</NavLink>
                 <NavLink to="/contact" className={({ isActive }) => isActive ? 'active' : ''}>Contact</NavLink>
             </nav>
         </header>

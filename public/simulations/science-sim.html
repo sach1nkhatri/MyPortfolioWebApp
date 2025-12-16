@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wave Interference Lab</title>
+  <style>
+    :root {
+      --bg: #080c18;
+      --panel: rgba(12, 18, 30, 0.8);
+      --text: #e9f3ff;
+      --accent: #6cf5ff;
+      --accent2: #ffc857;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 20% 20%, #10172a, #080c18 70%);
+      color: var(--text);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+    #controls {
+      width: 320px;
+      padding: 14px;
+      background: var(--panel);
+      backdrop-filter: blur(6px);
+      border-right: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 6px 0 18px rgba(0,0,0,0.35);
+      display: grid;
+      gap: 10px;
+    }
+    h1 { margin: 0; font-size: 18px; letter-spacing: 0.5px; }
+    label { font-size: 13px; color: #cdd9ec; display: flex; align-items: center; gap: 8px; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+    select, button {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+    }
+    button {
+      background: linear-gradient(135deg, #2f86ff, #5fd1ff);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+    }
+    #canvas {
+      flex: 1;
+      display: block;
+    }
+    #info {
+      font-size: 12px;
+      color: #cdd9ec;
+      line-height: 1.4;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <h1>Wave Interference Lab</h1>
+    <label>Mode
+      <select id="mode">
+        <option value="double">Double Slit</option>
+        <option value="single">Single Slit</option>
+        <option value="sources">Two Point Sources</option>
+      </select>
+    </label>
+    <label>Wavelength
+      <input type="range" id="lambda" min="10" max="120" value="60">
+      <span id="lambdaVal">60</span>
+    </label>
+    <label>Slit separation
+      <input type="range" id="sep" min="10" max="120" value="70">
+      <span id="sepVal">70</span>
+    </label>
+    <label>Slit width
+      <input type="range" id="width" min="4" max="40" value="14">
+      <span id="widthVal">14</span>
+    </label>
+    <label>Amplitude
+      <input type="range" id="amp" min="0.2" max="1.2" step="0.05" value="1">
+      <span id="ampVal">1.00</span>
+    </label>
+    <button id="reset">Reset</button>
+    <div id="info">
+      Visualize interference patterns. Brighter bands = constructive interference; dark = destructive. Adjust wavelength, slit spacing/width, and switch between single/double slit or point sources.
+    </div>
+  </div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let w, h;
+      function resize() {
+        w = window.innerWidth - 320;
+        h = window.innerHeight;
+        canvas.width = w;
+        canvas.height = h;
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      const modeEl = document.getElementById("mode");
+      const lambdaEl = document.getElementById("lambda");
+      const sepEl = document.getElementById("sep");
+      const widthEl = document.getElementById("width");
+      const ampEl = document.getElementById("amp");
+      const lambdaVal = document.getElementById("lambdaVal");
+      const sepVal = document.getElementById("sepVal");
+      const widthVal = document.getElementById("widthVal");
+      const ampVal = document.getElementById("ampVal");
+
+      let t = 0;
+      let animationId;
+
+      function updateLabels() {
+        lambdaVal.textContent = lambdaEl.value;
+        sepVal.textContent = sepEl.value;
+        widthVal.textContent = widthEl.value;
+        ampVal.textContent = parseFloat(ampEl.value).toFixed(2);
+      }
+      updateLabels();
+
+      function pattern(x, y) {
+        const lambda = parseFloat(lambdaEl.value);
+        const amp = parseFloat(ampEl.value);
+        const sep = parseFloat(sepEl.value);
+        const wid = parseFloat(widthEl.value);
+        const mode = modeEl.value;
+
+        let intensity = 0;
+        const sources = [];
+        if (mode === "single") {
+          sources.push({ x: 0, weight: 1 });
+        } else if (mode === "double") {
+          sources.push({ x: -sep / 2, weight: 1 });
+          sources.push({ x: sep / 2, weight: 1 });
+        } else {
+          sources.push({ x: -sep / 2, weight: 1 });
+          sources.push({ x: sep / 2, weight: 1 });
+        }
+
+        for (const s of sources) {
+          const dx = x - s.x;
+          const r = Math.sqrt(dx * dx + y * y);
+          const phase = (r / lambda) * Math.PI * 2 + t * 0.05;
+          const envelope = Math.exp(-(Math.abs(s.x - x) / Math.max(1, wid)) * (mode === "sources" ? 0.1 : 0.25));
+          intensity += amp * envelope * Math.sin(phase);
+        }
+        return intensity;
+      }
+
+      function draw() {
+        const img = ctx.getImageData(0, 0, w, h);
+        const data = img.data;
+        const cx = w / 2;
+        const cy = h * 0.15; // slits at top
+        const scale = 1.2;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const rx = (x - cx) / scale;
+            const ry = (y - cy);
+            const val = pattern(rx, ry);
+            const lum = Math.max(0, Math.min(255, 140 + val * 110));
+            const idx = (y * w + x) * 4;
+            data[idx] = lum * 0.6;
+            data[idx + 1] = lum;
+            data[idx + 2] = lum * 0.9;
+            data[idx + 3] = 255;
+          }
+        }
+        ctx.putImageData(img, 0, 0);
+        // draw slit markers
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, cy - 2, w, 4);
+        const sep = parseFloat(sepEl.value);
+        const wid = parseFloat(widthEl.value);
+        if (modeEl.value !== "sources") {
+          ctx.fillStyle = "rgba(255,255,255,0.8)";
+          if (modeEl.value === "single") {
+            ctx.fillRect(cx - wid / 2, cy - 6, wid, 12);
+          } else {
+            ctx.fillRect(cx - sep / 2 - wid / 2, cy - 6, wid, 12);
+            ctx.fillRect(cx + sep / 2 - wid / 2, cy - 6, wid, 12);
+          }
+        }
+      }
+
+      function loop() {
+        t += 1;
+        draw();
+        animationId = requestAnimationFrame(loop);
+      }
+      loop();
+
+      [modeEl, lambdaEl, sepEl, widthEl, ampEl].forEach(el => {
+        el.addEventListener("input", () => {
+          updateLabels();
+        });
+      });
+      document.getElementById("reset").addEventListener("click", () => {
+        lambdaEl.value = 60;
+        sepEl.value = 70;
+        widthEl.value = 14;
+        ampEl.value = 1;
+        modeEl.value = "double";
+        updateLabels();
+      });
+    })();
+  </script>
+</body>
+</html>

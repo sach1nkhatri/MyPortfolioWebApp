@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maze Escape</title>
+  <style>
+    :root {
+      --bg: #0f1118;
+      --panel: #171b27;
+      --text: #e9f3ff;
+      --accent: #4dd0ff;
+      --danger: #ff6b6b;
+      --enemy: #ffb347;
+      --key: #f8e473;
+      --door: #8be8b3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 20% 20%, #1c2233, #0c0f17 70%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    .wrap {
+      max-width: 1100px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    #hud {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+    }
+    #hud .item { min-width: 120px; }
+    #hud strong { color: var(--accent); }
+    #canvasWrap {
+      position: relative;
+      background: #0b0d13;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+      overflow: hidden;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    canvas { display: block; width: 100%; height: auto; object-fit: contain; }
+    #overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      text-align: center;
+      padding: 20px;
+      z-index: 5;
+    }
+    #overlay.hidden { display: none; }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #2f86ff, #41c9ff);
+      color: #0c0d14;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+      letter-spacing: 0.6px;
+    }
+    button:hover { filter: brightness(1.05); }
+    #touch {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, 70px);
+      grid-template-rows: repeat(2, 70px);
+      gap: 8px;
+      justify-content: center;
+    }
+    .touch-btn {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .touch-btn:active { background: rgba(255,255,255,0.08); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="hud">
+      <div class="item">Level: <strong id="levelVal">1</strong></div>
+      <div class="item">Lives: <strong id="livesVal">3</strong></div>
+      <div class="item">Deaths: <strong id="deathsVal">0</strong></div>
+      <div class="item">Time: <strong id="timeVal">0.0s</strong></div>
+    </div>
+    <div id="canvasWrap">
+      <canvas id="game" width="840" height="840"></canvas>
+      <div id="overlay">
+        <h2 id="overlayTitle">Maze Escape</h2>
+        <div id="overlayText">Reach the exit. Avoid traps and enemies. Collect keys for locked doors.</div>
+        <button id="startBtn">Start Game</button>
+      </div>
+    </div>
+    <div id="touch">
+      <div></div>
+      <div class="touch-btn" data-dir="up">▲</div>
+      <div></div>
+      <div class="touch-btn" data-dir="left">◀</div>
+      <div class="touch-btn" data-dir="down">▼</div>
+      <div class="touch-btn" data-dir="right">▶</div>
+    </div>
+  </div>
+
+  <script>
+    // Core types
+    class Maze {
+      constructor(cols, rows) {
+        this.cols = cols;
+        this.rows = rows;
+        this.grid = [];
+      }
+      generate() {
+        const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+        const stack = [];
+        this.grid = Array(this.rows).fill(null).map(()=>Array(this.cols).fill(null).map(()=>({
+          walls: {N:true,S:true,E:true,W:true},
+          visited:false
+        })));
+        const start = [0,0];
+        const idx = (c,r)=>({c,r});
+        let current = idx(0,0);
+        this.grid[0][0].visited=true;
+        stack.push(current);
+        while(stack.length){
+          const {c,r}=current;
+          const neighbors=[];
+          for(const [dx,dy] of dirs){
+            const nc=c+dx,nr=r+dy;
+            if(nc>=0&&nc<this.cols&&nr>=0&&nr<this.rows&&!this.grid[nr][nc].visited){
+              neighbors.push([nc,nr]);
+            }
+          }
+          if(neighbors.length){
+            const [nc,nr]=neighbors[Math.floor(Math.random()*neighbors.length)];
+            const dir=[nc-c,nr-r];
+            if(dir[0]===1){ this.grid[r][c].walls.E=false; this.grid[nr][nc].walls.W=false; }
+            if(dir[0]===-1){ this.grid[r][c].walls.W=false; this.grid[nr][nc].walls.E=false; }
+            if(dir[1]===1){ this.grid[r][c].walls.S=false; this.grid[nr][nc].walls.N=false; }
+            if(dir[1]===-1){ this.grid[r][c].walls.N=false; this.grid[nr][nc].walls.S=false; }
+            this.grid[nr][nc].visited=true;
+            stack.push(current);
+            current=idx(nc,nr);
+          } else {
+            current=stack.pop();
+          }
+        }
+      }
+      hasPath(start, end) {
+        const q=[start];
+        const visited=new Set([`${start.c},${start.r}`]);
+        const dirs=[["E",1,0],["W",-1,0],["S",0,1],["N",0,-1]];
+        while(q.length){
+          const cur=q.shift();
+          if(cur.c===end.c && cur.r===end.r) return true;
+          const cell=this.grid[cur.r][cur.c];
+          for(const [d,dx,dy] of dirs){
+            if(!cell.walls[d]){
+              const nc=cur.c+dx,nr=cur.r+dy;
+              const key=`${nc},${nr}`;
+              if(nc>=0&&nr>=0&&nc<this.cols&&nr<this.rows&&!visited.has(key)){
+                visited.add(key);
+                q.push({c:nc,r:nr});
+              }
+            }
+          }
+        }
+        return false;
+      }
+    }
+
+    class Entity {
+      constructor(x,y,w,h,color){this.x=x;this.y=y;this.w=w;this.h=h;this.color=color;}
+      draw(ctx){ctx.fillStyle=this.color;ctx.fillRect(this.x,this.y,this.w,this.h);}
+      intersects(other){return !(this.x+this.w<other.x||this.x>other.x+other.w||this.y+this.h<other.y||this.y>other.y+other.h);}
+    }
+    function circleRectCollide(cx,cy,r,rect){
+      const rx = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+      const ry = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+      const dx = cx - rx, dy = cy - ry;
+      return (dx*dx + dy*dy) <= r*r;
+    }
+
+    class MovingBlock extends Entity {
+      constructor(x,y,w,h,color,rangeX,rangeY,speed){
+        super(x,y,w,h,color);
+        this.base={x,y};
+        this.rangeX=rangeX; this.rangeY=rangeY; this.speed=speed;
+        this.t=0;
+      }
+      update(dt){
+        this.t+=dt*this.speed;
+        this.x=this.base.x+Math.sin(this.t)*this.rangeX;
+        this.y=this.base.y+Math.sin(this.t)*this.rangeY;
+      }
+    }
+
+    class Enemy extends Entity {
+      constructor(path,color,speed){
+        super(path[0].x,path[0].y,20,20,color);
+        this.path=path;
+        this.speed=speed;
+        this.targetIndex=1;
+      }
+      update(dt){
+        if(this.path.length<2) return;
+        const target=this.path[this.targetIndex];
+        const dx=target.x-this.x, dy=target.y-this.y;
+        const dist=Math.hypot(dx,dy);
+        if(dist<2){
+          this.targetIndex=(this.targetIndex+1)%this.path.length;
+          return;
+        }
+        const vx=dx/dist*this.speed*dt*60;
+        const vy=dy/dist*this.speed*dt*60;
+        this.x+=vx; this.y+=vy;
+      }
+    }
+
+    class Game {
+      constructor() {
+        this.canvas = document.getElementById("game");
+        this.ctx = this.canvas.getContext("2d");
+        this.levels = [
+          { size:12, traps:4, movers:1, enemies:0, keyDoor:false },
+          { size:16, traps:8, movers:2, enemies:1, keyDoor:false },
+          { size:20, traps:10, movers:3, enemies:1, keyDoor:true },
+          { size:24, traps:14, movers:4, enemies:2, keyDoor:true },
+          { size:28, traps:18, movers:5, enemies:3, keyDoor:true }
+        ];
+        this.cellSize = 24;
+        this.margin = 20;
+        this.state = "menu";
+        this.currentLevel = 0;
+        this.player = { x:0,y:0,r:8, speed:160, lives:3 };
+        this.totalDeaths = 0;
+        this.startTime = null;
+        this.levelStartTime = null;
+        this.keyCollected = false;
+        this.hazards=[]; this.movers=[]; this.enemies=[];
+        this.exit = {x:0,y:0,w:16,h:16};
+        this.door = null;
+        this.keysDown = {};
+        this.touchDir = {x:0,y:0};
+        this.bindInput();
+        this.updateHUD();
+        this.loop = this.loop.bind(this);
+        requestAnimationFrame(this.loop);
+      }
+      bindInput() {
+        window.addEventListener("keydown", e => {
+          this.keysDown[e.key.toLowerCase()] = true;
+          if (["arrowup","arrowdown","arrowleft","arrowright"].includes(e.key.toLowerCase())) e.preventDefault();
+        });
+        window.addEventListener("keyup", e => { delete this.keysDown[e.key.toLowerCase()]; });
+        document.querySelectorAll(".touch-btn").forEach(btn=>{
+          btn.addEventListener("touchstart", e => { e.preventDefault(); const d=btn.dataset.dir; this.setTouchDir(d,true); });
+          btn.addEventListener("touchend", e => { e.preventDefault(); const d=btn.dataset.dir; this.setTouchDir(d,false); });
+          btn.addEventListener("mousedown", () => this.setTouchDir(btn.dataset.dir,true));
+          btn.addEventListener("mouseup", () => this.setTouchDir(btn.dataset.dir,false));
+          btn.addEventListener("mouseleave", () => this.setTouchDir(btn.dataset.dir,false));
+        });
+      }
+      setTouchDir(dir, pressed){
+        const map={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+        if(pressed){ this.touchDir.x=map[dir][0]; this.touchDir.y=map[dir][1]; }
+        else { this.touchDir={x:0,y:0}; }
+      }
+      start() {
+        this.state = "playing";
+        this.currentLevel = 0;
+        this.totalDeaths = 0;
+        this.startTime = performance.now();
+        this.loadLevel();
+        document.getElementById("overlay").classList.add("hidden");
+      }
+      gameOver() {
+        this.state = "gameover";
+        document.getElementById("overlayTitle").textContent = "Game Over";
+        document.getElementById("overlayText").textContent = "You ran out of lives. Restart from Level 1.";
+        document.getElementById("startBtn").textContent = "Restart";
+        document.getElementById("overlay").classList.remove("hidden");
+      }
+      win() {
+        this.state = "win";
+        const totalTime = ((performance.now() - this.startTime)/1000).toFixed(1);
+        document.getElementById("overlayTitle").textContent = "You Won!";
+        document.getElementById("overlayText").textContent = `Total time: ${totalTime}s | Deaths: ${this.totalDeaths} | Levels: ${this.levels.length}`;
+        document.getElementById("startBtn").textContent = "Play Again";
+        document.getElementById("overlay").classList.remove("hidden");
+      }
+      loadLevel() {
+        const config = this.levels[this.currentLevel];
+        this.player.lives = 3;
+        this.keyCollected = false;
+        this.hazards=[]; this.movers=[]; this.enemies=[];
+        const mazeSize = config.size;
+        this.cellSize = Math.max(16, Math.min(32, Math.floor(800 / mazeSize)));
+        const sizePx = mazeSize * this.cellSize + this.margin * 2;
+        this.canvas.width = sizePx;
+        this.canvas.height = sizePx;
+        this.canvas.style.maxHeight = "80vh";
+        this.canvas.style.maxWidth = "100%";
+        this.maze = new Maze(mazeSize, mazeSize);
+        do { this.maze.generate(); } while (!this.maze.hasPath({c:0,r:0},{c:mazeSize-1,r:mazeSize-1}));
+        this.solutionPath = this.solvePath();
+        this.player.r = Math.max(6, this.cellSize*0.25);
+        this.player.x = this.margin + this.cellSize*0.5;
+        this.player.y = this.margin + this.cellSize*0.5;
+        this.exit.x = this.margin + (mazeSize-1)*this.cellSize + this.cellSize*0.35;
+        this.exit.y = this.margin + (mazeSize-1)*this.cellSize + this.cellSize*0.35;
+        if(config.keyDoor){
+          this.door = {x:this.exit.x, y:this.exit.y, w:this.cellSize*0.4, h:this.cellSize*0.4, locked:true};
+        } else this.door = null;
+        this.spawnHazards(config.traps);
+        this.spawnMovers(config.movers);
+        this.spawnEnemies(config.enemies);
+        this.levelStartTime = performance.now();
+        this.updateHUD();
+      }
+      solvePath() {
+        // BFS to record one path; used to keep hazards off main route
+        const start={c:0,r:0}, goal={c:this.maze.cols-1,r:this.maze.rows-1};
+        const q=[start];
+        const prev=new Map();
+        const key=(c,r)=>`${c},${r}`;
+        prev.set(key(start.c,start.r), null);
+        const dirs=[["E",1,0],["W",-1,0],["S",0,1],["N",0,-1]];
+        while(q.length){
+          const cur=q.shift();
+          if(cur.c===goal.c && cur.r===goal.r) break;
+          const cell=this.maze.grid[cur.r][cur.c];
+          for(const [d,dx,dy] of dirs){
+            if(!cell.walls[d]){
+              const nc=cur.c+dx,nr=cur.r+dy;
+              const k=key(nc,nr);
+              if(!prev.has(k)){
+                prev.set(k, cur);
+                q.push({c:nc,r:nr});
+              }
+            }
+          }
+        }
+        const path=new Set();
+        let cur=goal;
+        while(cur){
+          path.add(key(cur.c,cur.r));
+          cur=prev.get(key(cur.c,cur.r));
+        }
+        return path;
+      }
+      spawnHazards(count){
+        const size = this.maze.cols;
+        for(let i=0;i<count;i++){
+          let placed=false, attempts=0;
+          while(!placed && attempts<200){
+            attempts++;
+            const c = Math.floor(Math.random()*(size-2))+1;
+            const r = Math.floor(Math.random()*(size-2))+1;
+            const k=`${c},${r}`;
+            if(this.solutionPath && this.solutionPath.has(k)) continue;
+            this.hazards.push({
+              x:this.margin+c*this.cellSize+this.cellSize*0.2,
+              y:this.margin+r*this.cellSize+this.cellSize*0.2,
+              w:this.cellSize*0.6,
+              h:this.cellSize*0.6
+            });
+            placed=true;
+          }
+        }
+        // key placement if needed
+        if(this.door){
+          this.key = {
+            x:this.margin + Math.floor(size/2)*this.cellSize + this.cellSize*0.35,
+            y:this.margin + Math.floor(size/3)*this.cellSize + this.cellSize*0.35,
+            w:this.cellSize*0.3,
+            h:this.cellSize*0.3,
+            collected:false
+          };
+        } else this.key = null;
+      }
+      spawnMovers(count){
+        const size=this.maze.cols;
+        for(let i=0;i<count;i++){
+          let placed=false, attempts=0;
+          while(!placed && attempts<200){
+            attempts++;
+            const c=Math.floor(Math.random()*(size-4))+2;
+            const r=Math.floor(Math.random()*(size-4))+2;
+            if(this.solutionPath && this.solutionPath.has(`${c},${r}`)) continue;
+            const horiz=Math.random()>0.5;
+            const range=horiz?this.cellSize*1.5:0;
+            const rangeY=horiz?0:this.cellSize*1.5;
+            this.movers.push(new MovingBlock(
+              this.margin+c*this.cellSize+this.cellSize*0.2,
+              this.margin+r*this.cellSize+this.cellSize*0.2,
+              this.cellSize*0.6,
+              this.cellSize*0.6,
+              "#d4a5ff",
+              range,
+              rangeY,
+              2+Math.random()*1.5
+            ));
+            placed=true;
+          }
+        }
+      }
+      spawnEnemies(count){
+        const size=this.maze.cols;
+        for(let i=0;i<count;i++){
+          let placed=false, attempts=0;
+          while(!placed && attempts<200){
+            attempts++;
+            const c=Math.floor(Math.random()*(size-6))+3;
+            const r=Math.floor(Math.random()*(size-6))+3;
+            if(this.solutionPath && this.solutionPath.has(`${c},${r}`)) continue;
+            const path=[
+              {x:this.margin+c*this.cellSize+this.cellSize*0.3, y:this.margin+r*this.cellSize+this.cellSize*0.3},
+              {x:this.margin+(c+2)*this.cellSize+this.cellSize*0.3, y=this.margin+r*this.cellSize+this.cellSize*0.3},
+              {x:this.margin+(c+2)*this.cellSize+this.cellSize*0.3, y:this.margin+(r+2)*this.cellSize+this.cellSize*0.3},
+              {x: this.margin+c*this.cellSize+this.cellSize*0.3, y: this.margin+(r+2)*this.cellSize+this.cellSize*0.3}
+            ];
+            this.enemies.push(new Enemy(path, "#ffb347", 35+Math.random()*20));
+            placed=true;
+          }
+        }
+      }
+      updateHUD() {
+        document.getElementById("levelVal").textContent = this.currentLevel + 1;
+        document.getElementById("livesVal").textContent = this.player.lives;
+        document.getElementById("deathsVal").textContent = this.totalDeaths;
+      }
+      handleInput(dt) {
+        const dir={x:0,y:0};
+        if(this.keysDown["w"]||this.keysDown["arrowup"]||this.touchDir.y<0) dir.y=-1;
+        if(this.keysDown["s"]||this.keysDown["arrowdown"]||this.touchDir.y>0) dir.y=1;
+        if(this.keysDown["a"]||this.keysDown["arrowleft"]||this.touchDir.x<0) dir.x=-1;
+        if(this.keysDown["d"]||this.keysDown["arrowright"]||this.touchDir.x>0) dir.x=1;
+        const len=Math.hypot(dir.x,dir.y);
+        if(len>0){ dir.x/=len; dir.y/=len; }
+        const speed=this.player.speed;
+        let nx=this.player.x+dir.x*speed*dt;
+        let ny=this.player.y+dir.y*speed*dt;
+        const r=this.player.r;
+        if(!this.collidesWithMaze(nx, this.player.y, r)) this.player.x=nx;
+        if(!this.collidesWithMaze(this.player.x, ny, r)) this.player.y=ny;
+      }
+      collidesWithMaze(px, py, radius) {
+        const cx = Math.floor((px - this.margin) / this.cellSize);
+        const cy = Math.floor((py - this.margin) / this.cellSize);
+        if(cx<0||cy<0||cx>=this.maze.cols||cy>=this.maze.rows) return true;
+        const cell = this.maze.grid[cy][cx];
+        const localX = (px - this.margin) - cx*this.cellSize;
+        const localY = (py - this.margin) - cy*this.cellSize;
+        if(cell.walls.W && localX - radius < 0) return true;
+        if(cell.walls.E && localX + radius > this.cellSize) return true;
+        if(cell.walls.N && localY - radius < 0) return true;
+        if(cell.walls.S && localY + radius > this.cellSize) return true;
+        return false;
+      }
+      checkHazards() {
+        const p={x:this.player.x,y:this.player.y,r:this.player.r};
+        for(const h of this.hazards){
+          if(circleRectCollide(p.x,p.y,p.r,h)) return true;
+        }
+        for(const m of this.movers){
+          if(circleRectCollide(p.x,p.y,p.r,m)) return true;
+        }
+        for(const e of this.enemies){
+          if(circleRectCollide(p.x,p.y,p.r,e)) return true;
+        }
+        return false;
+      }
+      checkKeyDoor() {
+        if(this.key && !this.key.collected){
+          if(circleRectCollide(this.player.x,this.player.y,this.player.r,this.key)) this.key.collected=true;
+        }
+        if(this.door && this.key && this.key.collected) this.door.locked=false;
+      }
+      update(dt) {
+        if(this.state!=="playing") return;
+        this.handleInput(dt);
+        this.movers.forEach(m=>m.update(dt));
+        this.enemies.forEach(e=>e.update(dt));
+        this.checkKeyDoor();
+        if(this.checkHazards()) this.die();
+        // exit check
+        if(circleRectCollide(this.player.x,this.player.y,this.player.r,this.exit) && (!this.door || !this.door.locked)){
+          this.nextLevel();
+        }
+      }
+      die() {
+        this.player.lives--;
+        this.totalDeaths++;
+        if(this.player.lives<=0) { this.gameOver(); return; }
+        this.player.x = this.margin + this.cellSize*0.5;
+        this.player.y = this.margin + this.cellSize*0.5;
+        this.updateHUD();
+      }
+      nextLevel() {
+        this.currentLevel++;
+        if(this.currentLevel>=this.levels.length){ this.win(); return; }
+        this.loadLevel();
+      }
+      drawMaze() {
+        const ctx=this.ctx;
+        ctx.fillStyle="#0c0f17";
+        ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
+        ctx.strokeStyle="#2a2f3f";
+        ctx.lineWidth=3;
+        for(let r=0;r<this.maze.rows;r++){
+          for(let c=0;c<this.maze.cols;c++){
+            const cell=this.maze.grid[r][c];
+            const x=this.margin+c*this.cellSize;
+            const y=this.margin+r*this.cellSize;
+            ctx.beginPath();
+            if(cell.walls.N){ ctx.moveTo(x,y); ctx.lineTo(x+this.cellSize,y); }
+            if(cell.walls.S){ ctx.moveTo(x,y+this.cellSize); ctx.lineTo(x+this.cellSize,y+this.cellSize); }
+            if(cell.walls.W){ ctx.moveTo(x,y); ctx.lineTo(x,y+this.cellSize); }
+            if(cell.walls.E){ ctx.moveTo(x+this.cellSize,y); ctx.lineTo(x+this.cellSize,y+this.cellSize); }
+            ctx.stroke();
+          }
+        }
+      }
+      drawEntities() {
+        const ctx=this.ctx;
+        // exit/door
+        ctx.fillStyle=this.door && this.door.locked ? "#555" : "#6cffc1";
+        ctx.fillRect(this.exit.x,this.exit.y,this.exit.w,this.exit.h);
+        // key
+        if(this.key && !this.key.collected){
+          ctx.fillStyle=varKey;
+          ctx.fillRect(this.key.x,this.key.y,this.key.w,this.key.h);
+        }
+        // hazards
+        ctx.fillStyle=varDanger;
+        this.hazards.forEach(h=>ctx.fillRect(h.x,h.y,h.w,h.h));
+        // movers
+        ctx.fillStyle="#d4a5ff";
+        this.movers.forEach(m=>ctx.fillRect(m.x,m.y,m.w,m.h));
+        // enemies
+        ctx.fillStyle="#ffb347";
+        this.enemies.forEach(e=>ctx.fillRect(e.x,e.y,e.w,e.h));
+        // player
+        ctx.fillStyle="#4dd0ff";
+        ctx.beginPath();
+        ctx.arc(this.player.x,this.player.y,this.player.r,0,Math.PI*2);
+        ctx.fill();
+      }
+      draw() {
+        if(!this.maze) return;
+        this.drawMaze();
+        this.drawEntities();
+        // timer
+        if(this.state==="playing"){
+          const elapsed=(performance.now()-this.startTime)/1000;
+          document.getElementById("timeVal").textContent = elapsed.toFixed(1)+"s";
+        }
+      }
+      loop(ts) {
+        if(!this.prev) this.prev=ts;
+        const dt=Math.min(0.05,(ts-this.prev)/1000);
+        this.prev=ts;
+        this.update(dt);
+        this.draw();
+        requestAnimationFrame(this.loop);
+      }
+    }
+
+    const game = new Game();
+    const startBtn = document.getElementById("startBtn");
+    startBtn.addEventListener("click", () => game.start());
+    // allow Enter or canvas click to start if overlay is shown
+    window.addEventListener("keydown", e => {
+      if(e.key === "Enter" && document.getElementById("overlay").classList.contains("hidden")===false) game.start();
+    });
+    document.getElementById("canvasWrap").addEventListener("click", () => {
+      if(document.getElementById("overlay").classList.contains("hidden")===false) game.start();
+    });
+
+    const varDanger = getComputedStyle(document.documentElement).getPropertyValue("--danger").trim() || "#ff6b6b";
+    const varKey = getComputedStyle(document.documentElement).getPropertyValue("--key").trim() || "#f8e473";
+  </script>
+</body>
+</html>

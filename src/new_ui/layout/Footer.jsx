@@ -25,7 +25,7 @@ const Footer = () => {
             <div className="paper-footer-col">
                 <h5>Company</h5>
                 <ul>
-                    <li><Link to="/games">Games</Link></li>
+                    <li><Link to="/simulations">Simulations &amp; Games</Link></li>
                     <li><Link to="/contact">Contact</Link></li>
                     <li><Link to="/work">Works</Link></li>
                 </ul>

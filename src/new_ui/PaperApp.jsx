@@ -8,6 +8,7 @@ import PaperWork from './pages/PaperWork';
 import PaperWorkDetail from './pages/PaperWorkDetail';
 import PaperContact from './pages/PaperContact';
 import GamesApp from '../games';
+import PaperSimulations from './pages/PaperSimulations';
 
 const PaperApp = () => {
     return (
@@ -18,6 +19,7 @@ const PaperApp = () => {
                 <Route path="blog/:id" element={<PaperBlogDetail />} />
                 <Route path="work" element={<PaperWork />} />
                 <Route path="work/:id" element={<PaperWorkDetail />} />
+                <Route path="simulations" element={<PaperSimulations />} />
                 <Route path="games/*" element={<GamesApp />} />
                 <Route path="contact" element={<PaperContact />} />
             </Route>

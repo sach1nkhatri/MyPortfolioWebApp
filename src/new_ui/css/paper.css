@@ -421,6 +421,12 @@
   width: fit-content;
 }
 
+.paper-sim-card {
+  min-height: 220px;
+  justify-content: space-between;
+  background: #fffdf9;
+}
+
 .paper-spinner {
   display: inline-flex;
   gap: 8px;
