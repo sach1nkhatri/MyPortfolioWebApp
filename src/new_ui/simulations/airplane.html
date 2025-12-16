@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airplane 3D Aerodynamics Simulator</title>
+  <style>
+    :root {
+      --bg: #040910;
+      --panel: rgba(12, 16, 26, 0.78);
+      --text: #e9f3ff;
+      --accent: #4dd0ff;
+      --warn: #ff8b5e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #0c1a32, #050b17 70%);
+      color: var(--text);
+      overflow: hidden;
+    }
+    canvas { display: block; }
+    #ui {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      width: min(430px, calc(100vw - 24px));
+      padding: 14px;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+      display: grid;
+      gap: 10px;
+      z-index: 10;
+    }
+    h1 { margin: 0; font-size: 18px; letter-spacing: 0.3px; }
+    p { margin: 0; font-size: 13px; color: #cdd9ec; line-height: 1.45; }
+    .row { display: flex; align-items: center; gap: 8px; }
+    .row label { min-width: 118px; font-size: 13px; color: #cdd9ec; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 9px 12px;
+      background: linear-gradient(135deg, #2f86ff, #5fd1ff);
+      color: white;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.32);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    button:active { transform: translateY(1px); box-shadow: 0 4px 12px rgba(0,0,0,0.28); }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 12px;
+    }
+    .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+    #legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    @media (max-width: 520px) { #ui { width: calc(100vw - 24px); } #legend { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="help" style="position:fixed;top:16px;right:16px;max-width:360px;background:rgba(5,9,16,0.88);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px 14px;color:#e9f3ff;font-size:13px;line-height:1.4;box-shadow:0 14px 28px rgba(0,0,0,0.35);z-index:12;">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+      <strong style="letter-spacing:0.3px;">How to fly</strong>
+      <button id="closeHelp" style="border:none;border-radius:8px;padding:6px 10px;background:linear-gradient(135deg,#2f86ff,#5fd1ff);color:white;cursor:pointer;">Got it</button>
+    </div>
+    W/S pitch, A/D roll, Q/E yaw, ↑/↓ throttle, R reset, Space pause.<br>
+    Keep the nose near the horizon line and throttle around 60–80% for stable flight.
+  </div>
+  <div id="ui">
+    <div>
+      <h1>Airplane Aerodynamics Simulator (Pseudo-3D)</h1>
+      <p>Third-person view with simple 3D projection and flight-sim style horizon. Fly with <b>W/S</b> pitch, <b>A/D</b> roll, <b>Q/E</b> yaw, <b>↑/↓</b> throttle, <b>R</b> reset, <b>Space</b> pause.</p>
+    </div>
+    <div class="row">
+      <label for="thrust">Throttle</label>
+      <input id="thrust" type="range" min="0" max="1.2" step="0.02" value="0.5">
+      <span id="thrustVal">0.50</span>
+    </div>
+    <div class="row">
+      <label for="clAlpha">Lift slope</label>
+      <input id="clAlpha" type="range" min="3.5" max="8.0" step="0.1" value="5.5">
+      <span id="clAlphaVal">5.5</span>
+    </div>
+    <div class="row">
+      <label for="drag">Drag coeff</label>
+      <input id="drag" type="range" min="0.02" max="0.14" step="0.005" value="0.05">
+      <span id="dragVal">0.050</span>
+    </div>
+    <div class="row">
+      <label for="trim">Pitch trim</label>
+      <input id="trim" type="range" min="-10" max="10" step="0.5" value="0">
+      <span id="trimVal">0.0°</span>
+    </div>
+    <div class="row" style="justify-content: space-between;">
+      <button id="reset">Reset</button>
+      <button id="pause">Pause</button>
+    </div>
+    <div class="stat"><span>Airspeed</span><span id="spd">0 m/s</span></div>
+    <div class="stat"><span>Angle of attack</span><span id="aoa">0°</span></div>
+    <div class="stat"><span>Heading</span><span id="hdg">000°</span></div>
+    <div class="stat"><span>Lift / Weight</span><span id="liftWeight">0</span></div>
+    <div class="stat"><span>Altitude</span><span id="alt">0 m</span></div>
+    <div class="stat"><span>Climb rate</span><span id="vsi">0 m/s</span></div>
+    <div class="stat"><span>Throttle input</span><span id="throttleStat">0%</span></div>
+    <div id="legend">
+      <div class="badge"><span class="swatch" style="background:#4dd0ff;"></span>Lift</div>
+      <div class="badge"><span class="swatch" style="background:#ff8b5e;"></span>Drag</div>
+      <div class="badge"><span class="swatch" style="background:#8bff9c;"></span>Thrust</div>
+      <div class="badge"><span class="swatch" style="background:#d9d9d9;"></span>Gravity</div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let w, h;
+      function resize() {
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = w;
+        canvas.height = h;
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      const thrustSlider = document.getElementById("thrust");
+      const clAlphaSlider = document.getElementById("clAlpha");
+      const dragSlider = document.getElementById("drag");
+      const trimSlider = document.getElementById("trim");
+      const thrustVal = document.getElementById("thrustVal");
+      const clAlphaVal = document.getElementById("clAlphaVal");
+      const dragVal = document.getElementById("dragVal");
+      const trimVal = document.getElementById("trimVal");
+      const spdEl = document.getElementById("spd");
+      const aoaEl = document.getElementById("aoa");
+      const hdgEl = document.getElementById("hdg");
+      const lwEl = document.getElementById("liftWeight");
+      const altEl = document.getElementById("alt");
+      const vsiEl = document.getElementById("vsi");
+      const throttleStat = document.getElementById("throttleStat");
+      const resetBtn = document.getElementById("reset");
+      const pauseBtn = document.getElementById("pause");
+
+      let paused = false;
+      const key = {};
+      document.addEventListener("keydown", e => key[e.code] = true);
+      document.addEventListener("keyup", e => key[e.code] = false);
+
+      let currentSpeed = 0;
+
+      function vec3(x=0,y=0,z=0){return {x,y,z};}
+      function add(a,b){return {x:a.x+b.x,y:a.y+b.y,z:a.z+b.z};}
+      function sub(a,b){return {x:a.x-b.x,y:a.y-b.y,z:a.z-b.z};}
+      function mul(v,s){return {x:v.x*s,y:v.y*s,z:v.z*s};}
+      function dot(a,b){return a.x*b.x+a.y*b.y+a.z*b.z;}
+      function cross(a,b){return {x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x};}
+      function mag(v){return Math.hypot(v.x,v.y,v.z);}
+      function norm(v){const m=mag(v)||1;return {x:v.x/m,y:v.y/m,z:v.z/m};}
+      function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+      const plane = {
+        pos: vec3(0, 300, 0),
+        vel: vec3(90, 0, 0),
+        yaw: 0,
+        pitch: 0,
+        roll: 0,
+        rollRate: 0,
+        pitchRate: 0,
+        yawRate: 0,
+        mass: 1200,
+        area: 16,
+        clSlope: 5.5,
+        cd0: 0.05,
+        thrust: 0.7,
+        trim: 0
+      };
+
+      const airDensity = 1.225;
+      const gravity = 9.81;
+      const maxThrust = 12000; // N
+      const stallAoA = 14 * Math.PI / 180;
+      const stallDecay = 0.4;
+      let last = performance.now();
+
+      function basisFromOrientation(yaw, pitch, roll) {
+        // forward from yaw/pitch
+        const cy = Math.cos(yaw), sy = Math.sin(yaw);
+        const cp = Math.cos(pitch), sp = Math.sin(pitch);
+        let forward = norm({ x: cp * Math.cos(yaw), y: sp, z: cp * Math.sin(yaw) });
+        let right = norm(cross(forward, { x: 0, y: 1, z: 0 }));
+        let up = norm(cross(right, forward));
+        // apply roll around forward axis
+        const cr = Math.cos(roll), sr = Math.sin(roll);
+        const newRight = norm({
+          x: right.x * cr + up.x * sr,
+          y: right.y * cr + up.y * sr,
+          z: right.z * cr + up.z * sr
+        });
+        const newUp = norm(cross(newRight, forward));
+        return { forward, right: newRight, up: newUp };
+      }
+
+      function projectPoint(point, camPos, camBasis, focal = 550) {
+        const rel = sub(point, camPos);
+        const x = dot(rel, camBasis.right);
+        const y = dot(rel, camBasis.up);
+        const z = dot(rel, camBasis.forward);
+        if (z <= 1) return null;
+        const sx = w / 2 + (x / z) * focal;
+        const sy = h / 2 - (y / z) * focal;
+        return { x: sx, y: sy, z };
+      }
+
+      function planeModelPoints() {
+        return [
+          vec3(7, 0, 0),    // nose
+          vec3(-9, 0, 0),   // tail
+          vec3(-1, 0, -13), // left wing tip
+          vec3(-1, 0, 13),  // right wing tip
+          vec3(-7, 3.5, 0), // tail top
+          vec3(-7, -2.5, 0) // tail bottom
+        ];
+      }
+
+      function transformPoint(p, origin, basis) {
+        return add(origin, {
+          x: p.x * basis.forward.x + p.y * basis.up.x + p.z * basis.right.x,
+          y: p.x * basis.forward.y + p.y * basis.up.y + p.z * basis.right.y,
+          z: p.x * basis.forward.z + p.y * basis.up.z + p.z * basis.right.z
+        });
+      }
+
+      function showAnnounce() {}
+
+      function update(dt) {
+        // inputs (rates with damping for smoother feel)
+        const rollInput = (key["KeyA"] ? 1 : 0) - (key["KeyD"] ? 1 : 0); // inverted roll: A rolls left, D rolls right
+        const pitchInput = (key["KeyW"] ? 1 : 0) - (key["KeyS"] ? 1 : 0);
+        const yawInput = (key["KeyE"] ? 1 : 0) - (key["KeyQ"] ? 1 : 0);
+        if (key["ArrowUp"]) plane.thrust = Math.min(1.2, plane.thrust + 0.5 * dt);
+        if (key["ArrowDown"]) plane.thrust = Math.max(0, plane.thrust - 0.6 * dt);
+
+        plane.rollRate += rollInput * 2.0 * dt - plane.rollRate * 2.0 * dt;
+        plane.pitchRate += pitchInput * 1.3 * dt - plane.pitchRate * 1.7 * dt;
+        plane.yawRate += yawInput * 0.8 * dt - plane.yawRate * 1.4 * dt;
+        plane.rollRate -= plane.roll * 0.8 * dt; // stronger auto-level assist
+        plane.pitchRate -= plane.pitch * 0.5 * dt; // nose leveling
+
+        plane.roll += plane.rollRate * dt;
+        plane.pitch += plane.pitchRate * dt;
+        plane.yaw += plane.yawRate * dt;
+
+        plane.clSlope = parseFloat(clAlphaSlider.value);
+        plane.cd0 = parseFloat(dragSlider.value);
+        plane.trim = parseFloat(trimSlider.value) * Math.PI / 180;
+        const throttleInput = parseFloat(thrustSlider.value);
+        plane.thrust += (throttleInput - plane.thrust) * 0.5;
+
+        const basis = basisFromOrientation(plane.yaw, plane.pitch, plane.roll);
+        // Airspeed and AoA
+        let speed = mag(plane.vel);
+        speed = clamp(speed, 5, 220);
+        const relVel = mul(plane.vel, 1);
+        const relDir = norm(relVel);
+        const aoaRaw = Math.asin(clamp(dot(relDir, basis.up), -1, 1));
+        const aoa = (plane.pitch - Math.atan2(relVel.y, Math.hypot(relVel.x, relVel.z))) + plane.trim;
+
+        // Stall model: lift falls after stall AoA
+        let cl = plane.clSlope * aoa;
+        const absAoA = Math.abs(aoa);
+        if (absAoA > stallAoA) {
+          const excess = absAoA - stallAoA;
+          cl *= Math.max(0, 1 - excess * stallDecay);
+        }
+        const q = 0.5 * airDensity * speed * speed;
+        const liftMag = q * plane.area * cl;
+        const cdInduced = cl * cl * 0.025;
+        const dragMag = q * plane.area * (plane.cd0 + cdInduced);
+
+        const liftDir = norm(basis.up); // simpler lift direction
+        const dragDir = mul(relDir, -1);
+        const thrustDir = basis.forward;
+
+        const Fx = liftDir.x * liftMag + dragDir.x * dragMag + thrustDir.x * maxThrust * plane.thrust;
+        const Fy = liftDir.y * liftMag + dragDir.y * dragMag + thrustDir.y * maxThrust * plane.thrust - plane.mass * gravity;
+        const Fz = liftDir.z * liftMag + dragDir.z * dragMag + thrustDir.z * maxThrust * plane.thrust;
+
+        plane.vel.x += (Fx / plane.mass) * dt;
+        plane.vel.y += (Fy / plane.mass) * dt;
+        plane.vel.z += (Fz / plane.mass) * dt;
+
+        plane.pos.x += plane.vel.x * dt;
+        plane.pos.y += plane.vel.y * dt;
+        plane.pos.z += plane.vel.z * dt;
+
+        // simple ground damp
+        if (plane.pos.y < 5) {
+          plane.pos.y = 5;
+          plane.vel.y *= -0.1;
+        }
+
+        // stats
+        spdEl.textContent = `${speed.toFixed(1)} m/s`;
+        aoaEl.textContent = `${(aoa * 180 / Math.PI).toFixed(1)}°`;
+        lwEl.textContent = (liftMag / (plane.mass * gravity)).toFixed(2);
+        altEl.textContent = `${plane.pos.y.toFixed(0)} m`;
+        vsiEl.textContent = `${(plane.vel.y).toFixed(1)} m/s`;
+        hdgEl.textContent = `${((plane.yaw * 180 / Math.PI + 360) % 360).toFixed(0).padStart(3,"0")}°`;
+        throttleStat.textContent = `${Math.round(plane.thrust * 100)}%`;
+        thrustVal.textContent = plane.thrust.toFixed(2);
+        clAlphaVal.textContent = plane.clSlope.toFixed(1);
+        dragVal.textContent = plane.cd0.toFixed(3);
+        trimVal.textContent = (plane.trim * 180 / Math.PI).toFixed(1) + "°";
+      }
+
+      function drawVector3D(origin, vec, camPos, camBasis, color) {
+        const end = add(origin, vec);
+        const a = projectPoint(origin, camPos, camBasis);
+        const b = projectPoint(end, camPos, camBasis);
+        if (!a || !b) return;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+
+      function drawGround(camPos, camBasis) {
+        const lines = [];
+        const span = 500;
+        for (let i = -span; i <= span; i += 40) {
+          lines.push([vec3(i, 0, -span), vec3(i, 0, span)]);
+          lines.push([vec3(-span, 0, i), vec3(span, 0, i)]);
+        }
+        ctx.strokeStyle = "rgba(90, 150, 255, 0.18)";
+        ctx.lineWidth = 1;
+        for (const [a, b] of lines) {
+          const pa = projectPoint(a, camPos, camBasis);
+          const pb = projectPoint(b, camPos, camBasis);
+          if (!pa || !pb) continue;
+          ctx.beginPath();
+          ctx.moveTo(pa.x, pa.y);
+          ctx.lineTo(pb.x, pb.y);
+          ctx.stroke();
+        }
+      }
+
+
+      function drawPlane(camPos, camBasis, basis) {
+        const pts = planeModelPoints().map(p => transformPoint(p, plane.pos, basis));
+        const proj = pts.map(p => projectPoint(p, camPos, camBasis));
+        if (proj.some(p => !p)) return;
+        const [nose, tail, left, right, tailTop, tailBottom] = proj;
+        const fuselageGrad = ctx.createLinearGradient(nose.x, nose.y, tail.x, tail.y);
+        fuselageGrad.addColorStop(0, "#d5e6ff");
+        fuselageGrad.addColorStop(1, "#8aa8d9");
+        ctx.fillStyle = fuselageGrad;
+        ctx.strokeStyle = "#e6ecff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(nose.x, nose.y);
+        ctx.lineTo(left.x, left.y);
+        ctx.lineTo(tail.x, tail.y);
+        ctx.lineTo(right.x, right.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(tailTop.x, tailTop.y);
+        ctx.lineTo(tail.x, tail.y);
+        ctx.lineTo(tailBottom.x, tailBottom.y);
+        ctx.closePath();
+        ctx.fillStyle = "#bcd0f0";
+        ctx.fill();
+        ctx.stroke();
+
+        // canopy near the nose
+        ctx.fillStyle = "rgba(80,180,255,0.6)";
+        ctx.beginPath();
+        ctx.ellipse((nose.x + tail.x * 0.2) / 1.2, (nose.y + tail.y * 0.2) / 1.2, 12, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // wing stripes
+        ctx.strokeStyle = "rgba(255,255,255,0.6)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo((left.x + tail.x) / 2, (left.y + tail.y) / 2);
+        ctx.lineTo((left.x + nose.x) / 2, (left.y + nose.y) / 2);
+        ctx.moveTo((right.x + tail.x) / 2, (right.y + tail.y) / 2);
+        ctx.lineTo((right.x + nose.x) / 2, (right.y + nose.y) / 2);
+        ctx.stroke();
+      }
+
+      function drawSky() {
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, "#0e2a4f");
+        g.addColorStop(1, "#050b17");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+
+        // sun glow
+        ctx.fillStyle = "rgba(255, 226, 150, 0.4)";
+        ctx.beginPath();
+        ctx.arc(w * 0.75, h * 0.2, 90, 0, Math.PI * 2);
+        ctx.fill();
+
+        // light cloud bands to show motion
+        const cloudCount = 8;
+        for (let i = 0; i < cloudCount; i++) {
+          const y = (h * 0.2) + i * (h / cloudCount);
+          ctx.fillStyle = `rgba(255,255,255,${0.02 + 0.01 * Math.sin(i + performance.now() * 0.0002)})`;
+          ctx.fillRect(0, y, w, 30);
+        }
+      }
+
+      function drawHorizon(camBasis) {
+        // artificial horizon using plane attitude (retro amber)
+        const roll = plane.roll;
+        const pitch = plane.pitch;
+        const centerX = w / 2;
+        const centerY = h / 2;
+        const offset = pitch * 280;
+        ctx.save();
+        ctx.translate(centerX, centerY + offset);
+        ctx.rotate(-roll);
+        ctx.strokeStyle = "rgba(246, 217, 111, 0.8)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-220, 0);
+        ctx.lineTo(220, 0);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        for (let i = -4; i <= 4; i++) {
+          if (i === 0) continue;
+          const y = -i * 24;
+          ctx.beginPath();
+          ctx.moveTo(-26, y);
+          ctx.lineTo(26, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // flight path marker
+        ctx.strokeStyle = "#82ff9a";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX - 10, centerY);
+        ctx.lineTo(centerX + 10, centerY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY - 6);
+        ctx.lineTo(centerX, centerY + 6);
+        ctx.stroke();
+
+        // simple avionics tapes
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        ctx.strokeStyle = "rgba(246,217,111,0.35)";
+        ctx.lineWidth = 1;
+        ctx.fillRect(12, centerY - 60, 70, 120);
+        ctx.strokeRect(12, centerY - 60, 70, 120);
+        ctx.fillRect(w - 82, centerY - 60, 70, 120);
+        ctx.strokeRect(w - 82, centerY - 60, 70, 120);
+        ctx.fillStyle = "rgba(246,217,111,0.9)";
+        ctx.font = "13px 'Courier New', monospace";
+        ctx.textAlign = "left";
+        ctx.fillText(spdEl.textContent.replace(' m/s',''), 18, centerY + 6);
+        ctx.textAlign = "right";
+        ctx.fillText(altEl.textContent.replace(' m',''), w - 12, centerY + 6);
+      }
+
+      function drawCompass(headingDeg) {
+        const width = 360;
+        const cx = w / 2;
+        const y = 42;
+        ctx.fillStyle = "rgba(0,0,0,0.65)";
+        ctx.strokeStyle = "rgba(246,217,111,0.4)";
+        ctx.lineWidth = 1;
+        ctx.fillRect(cx - width / 2, y - 18, width, 36);
+        ctx.strokeRect(cx - width / 2, y - 18, width, 36);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(cx - width / 2, y - 18, width, 36);
+        ctx.clip();
+        ctx.strokeStyle = "rgba(246,217,111,0.9)";
+        ctx.fillStyle = "rgba(246,217,111,0.95)";
+        ctx.font = "12px 'Courier New', monospace";
+        const span = 90;
+        for (let d = -span; d <= span; d += 10) {
+          const hdg = (headingDeg + d + 360) % 360;
+          const x = cx - d * 2; // shift tape opposite heading change
+          const isMajor = d % 30 === 0;
+          ctx.beginPath();
+          ctx.moveTo(x, y + 7);
+          ctx.lineTo(x, y + (isMajor ? -8 : -4));
+          ctx.stroke();
+          if (isMajor) {
+            const card = ["N","E","S","W"][(Math.round(hdg/90))%4];
+            const label = Math.abs(hdg % 90) < 1 ? card : hdg.toFixed(0).padStart(3,"0");
+            ctx.fillText(label, x - 8, y - 10);
+          }
+        }
+        ctx.restore();
+        // caret and readout
+        ctx.fillStyle = "#82ff9a";
+        ctx.beginPath();
+        ctx.moveTo(cx, y + 15);
+        ctx.lineTo(cx - 7, y + 3);
+        ctx.lineTo(cx + 7, y + 3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "rgba(246,217,111,0.95)";
+        ctx.font = "13px 'Courier New', monospace";
+        const label = headingDeg.toFixed(0).padStart(3, "0");
+        ctx.fillText(label, cx - 18, y - 12);
+      }
+
+      function drawHUD() {
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+        ctx.fillRect(0, h - 60, w, 60);
+        ctx.fillStyle = "#cdd9ec";
+        ctx.font = "12px Helvetica";
+        ctx.fillText("Controls: S/W pitch, A/D roll, Q/E yaw, ↑/↓ throttle, R reset, Space pause", 16, h - 20);
+      }
+
+      function drawSpeedStreaks() {
+        const count = Math.min(50, Math.floor(currentSpeed / 3));
+        ctx.strokeStyle = "rgba(255,255,255,0.2)";
+        ctx.lineWidth = 2;
+        for (let i = 0; i < count; i++) {
+          const ang = Math.random() * Math.PI * 2;
+          const dist = 40 + Math.random() * 220;
+          const len = 8 + Math.random() * 20 + currentSpeed * 0.05;
+          const cx = w / 2 + Math.cos(ang) * dist;
+          const cy = h / 2 + Math.sin(ang) * dist;
+          const dx = -Math.cos(ang) * len;
+          const dy = -Math.sin(ang) * len;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + dx, cy + dy);
+          ctx.stroke();
+        }
+      }
+
+      let camPos = vec3(0,0,0);
+
+      function loop(now) {
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        if (!paused) update(dt);
+
+        // camera follows behind plane with smoothing
+        const basis = basisFromOrientation(plane.yaw, plane.pitch, plane.roll);
+        const desiredCam = add(plane.pos, add(mul(basis.forward, -60), mul(basis.up, 24)));
+        camPos = add(camPos, mul(sub(desiredCam, camPos), 0.12));
+        const camBasis = basisFromOrientation(plane.yaw, plane.pitch * 0.6, plane.roll * 0.2); // soften shake
+
+        drawSky();
+        drawGround(camPos, camBasis);
+        drawPlane(camPos, camBasis, basis);
+
+        // force vectors
+        const speed = Math.max(1, mag(plane.vel));
+        currentSpeed = speed;
+        const relDir = norm(plane.vel);
+        const cl = plane.clSlope * ((Math.atan2(plane.vel.y, plane.vel.x) - plane.pitch) + plane.trim);
+        const q = 0.5 * airDensity * speed * speed;
+        const liftMag = q * plane.area * cl;
+        const cdInduced = cl * cl * 0.025;
+        const dragMag = q * plane.area * (plane.cd0 + cdInduced);
+        const liftDir = norm(cross(basis.right, relDir));
+        const dragDir = mul(relDir, -1);
+        drawVector3D(plane.pos, mul(liftDir, liftMag * 0.2), camPos, camBasis, "#4dd0ff");
+        drawVector3D(plane.pos, mul(dragDir, dragMag * 0.2), camPos, camBasis, "#ff8b5e");
+        drawVector3D(plane.pos, mul(basis.forward, maxThrust * plane.thrust * 0.05), camPos, camBasis, "#8bff9c");
+        drawVector3D(plane.pos, vec3(0, -plane.mass * gravity * 0.05, 0), camPos, camBasis, "#d9d9d9");
+
+        const headingDeg = ((plane.yaw * 180 / Math.PI + 360) % 360);
+        drawCompass(headingDeg);
+        drawHorizon(camBasis);
+        drawHUD();
+        drawSpeedStreaks();
+        requestAnimationFrame(loop);
+      }
+
+      thrustSlider.addEventListener("input", () => { thrustVal.textContent = parseFloat(thrustSlider.value).toFixed(2); });
+      clAlphaSlider.addEventListener("input", () => { clAlphaVal.textContent = parseFloat(clAlphaSlider.value).toFixed(1); });
+      dragSlider.addEventListener("input", () => { dragVal.textContent = parseFloat(dragSlider.value).toFixed(3); });
+      trimSlider.addEventListener("input", () => { trimVal.textContent = parseFloat(trimSlider.value).toFixed(1) + "°"; });
+      resetBtn.addEventListener("click", () => {
+        plane.pos = vec3(0, 300, 0);
+        plane.vel = vec3(75, 0, 0);
+        plane.yaw = plane.pitch = plane.roll = 0;
+        plane.thrust = parseFloat(thrustSlider.value);
+        plane.rollRate = plane.pitchRate = plane.yawRate = 0;
+        paused = false;
+      });
+      pauseBtn.addEventListener("click", () => {
+        paused = !paused;
+        pauseBtn.textContent = paused ? "Resume" : "Pause";
+      });
+      document.getElementById("closeHelp").addEventListener("click", () => {
+        const h = document.getElementById("help");
+        h.style.display = "none";
+      });
+      document.addEventListener("keydown", e => {
+        if (e.code === "Space") { paused = !paused; pauseBtn.textContent = paused ? "Resume" : "Pause"; }
+        if (e.code === "KeyR") { resetBtn.click(); }
+      });
+
+      thrustVal.textContent = parseFloat(thrustSlider.value).toFixed(2);
+      clAlphaVal.textContent = parseFloat(clAlphaSlider.value).toFixed(1);
+      dragVal.textContent = parseFloat(dragSlider.value).toFixed(3);
+      trimVal.textContent = parseFloat(trimSlider.value).toFixed(1) + "°";
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuclear Fission Simulator</title>
+  <style>
+    :root {
+      --bg: #05070c;
+      --panel: rgba(15, 18, 28, 0.75);
+      --accent: #3ad0ff;
+      --heat: #ff8f3d;
+      --fuel: #4dd087;
+      --rod: #8ea3b6;
+      --text: #e8f3ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #0c1323, #05070c 65%);
+      color: var(--text);
+      overflow: hidden;
+    }
+    canvas { display: block; }
+    #ui {
+      position: fixed;
+      top: 12px; left: 12px;
+      width: min(380px, calc(100vw - 24px));
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
+      z-index: 10;
+      display: grid;
+      gap: 10px;
+    }
+    h1 { margin: 0; font-size: 18px; letter-spacing: 0.3px; }
+    p { margin: 0; font-size: 13px; line-height: 1.4; color: #c8d7e7; }
+    label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #c8d7e7; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+    .row { display: flex; gap: 8px; align-items: center; }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, #2f86ff, #39c7ff);
+      color: white;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    button:active { transform: translateY(1px); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); }
+    #stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stat {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+    }
+    .stat strong { display: block; color: var(--text); font-size: 13px; margin-bottom: 4px; }
+    #legend {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      font-size: 12px;
+    }
+    .badge { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+    #heatBar {
+      width: 100%;
+      height: 8px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #32e07a, #ffd166, #ff8f3d, #ff4d6d);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    #heatMarker {
+      position: absolute;
+      top: -4px;
+      width: 2px;
+      height: 16px;
+      background: #fff;
+      box-shadow: 0 0 8px rgba(255,255,255,0.6);
+      transform: translateX(0);
+    }
+    @media (max-width: 520px) {
+      #ui { width: calc(100vw - 24px); }
+      #stats { grid-template-columns: repeat(2, 1fr); }
+      #legend { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="ui">
+    <div>
+      <h1>Nuclear Fission Simulator</h1>
+      <p>Watch free neutrons trigger fission in U-235 style fuel grains. Adjust control rods and fuel density to steer the chain reaction toward criticality.</p>
+    </div>
+    <div class="row">
+      <label for="density">Fuel density</label>
+      <input id="density" type="range" min="0.2" max="1.6" step="0.05" value="1.0">
+      <span id="densityVal">1.0×</span>
+    </div>
+    <div class="row">
+      <label for="rods">Control rods</label>
+      <input id="rods" type="range" min="0" max="1" step="0.02" value="0.35">
+      <span id="rodVal">35%</span>
+    </div>
+    <div class="row">
+      <label for="injection">Neutron injection</label>
+      <input id="injection" type="range" min="0" max="1" step="0.05" value="0.2">
+      <span id="injVal">0.2</span>
+    </div>
+    <div class="row">
+      <button id="pulse">Pulse neutrons</button>
+      <button id="toggle">Pause</button>
+      <button id="reset">Reset</button>
+    </div>
+    <div id="stats">
+      <div class="stat"><strong>Neutrons</strong><span id="nCount">0</span></div>
+      <div class="stat"><strong>Fissions/s</strong><span id="rate">0</span></div>
+      <div class="stat"><strong>k-effective</strong><span id="keff">0.00</span></div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:12px;color:#c8d7e7;">Core heat</span>
+        <span id="heatVal" style="font-size:12px;">0%</span>
+      </div>
+      <div id="heatBar"><div id="heatMarker"></div></div>
+    </div>
+    <div id="legend">
+      <div class="badge"><span class="swatch" style="background: var(--fuel);"></span>Fuel grains</div>
+      <div class="badge"><span class="swatch" style="background: var(--rod);"></span>Control rods</div>
+      <div class="badge"><span class="swatch" style="background: var(--accent);"></span>Neutrons</div>
+      <div class="badge"><span class="swatch" style="background: var(--heat);"></span>Fission energy</div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let width, height;
+
+      const densitySlider = document.getElementById("density");
+      const rodsSlider = document.getElementById("rods");
+      const injectionSlider = document.getElementById("injection");
+      const densityVal = document.getElementById("densityVal");
+      const rodVal = document.getElementById("rodVal");
+      const injVal = document.getElementById("injVal");
+      const nCount = document.getElementById("nCount");
+      const rateEl = document.getElementById("rate");
+      const keffEl = document.getElementById("keff");
+      const heatVal = document.getElementById("heatVal");
+      const heatMarker = document.getElementById("heatMarker");
+
+      const pulseBtn = document.getElementById("pulse");
+      const toggleBtn = document.getElementById("toggle");
+      const resetBtn = document.getElementById("reset");
+
+      let running = true;
+      let neutrons = [];
+      let fuel = [];
+      let lastTime = performance.now();
+      let fissionCounter = [];
+      let heat = 0;
+
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      function spawnFuel() {
+        fuel = [];
+        const rows = 28;
+        const cols = 28;
+        const spacing = Math.min(width, height) / (Math.max(rows, cols) + 4);
+        const offsetX = width / 2 - (cols * spacing) / 2;
+        const offsetY = height / 2 - (rows * spacing) / 2;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (Math.random() > densitySlider.value / 2) continue;
+            const jitter = (Math.random() - 0.5) * spacing * 0.2;
+            fuel.push({
+              x: offsetX + c * spacing + jitter,
+              y: offsetY + r * spacing + jitter,
+              size: spacing * 0.45,
+              active: true,
+              heat: 0
+            });
+          }
+        }
+      }
+
+      function spawnNeutrons(amount = 40) {
+        for (let i = 0; i < amount; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 90 + Math.random() * 80;
+          neutrons.push({
+            x: width / 2 + (Math.random() - 0.5) * 40,
+            y: height / 2 + (Math.random() - 0.5) * 40,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            alive: true
+          });
+        }
+      }
+
+      function captureByRods(n) {
+        const depth = rodsSlider.value; // 0..1
+        const rodTop = height * 0.25;
+        const rodBottom = rodTop + depth * height * 0.5;
+        return n.y > rodTop && n.y < rodBottom && Math.random() < 0.35 + depth * 0.6;
+      }
+
+      function handleCollisions(n) {
+        for (const grain of fuel) {
+          if (!grain.active) continue;
+          const dx = n.x - grain.x;
+          const dy = n.y - grain.y;
+          const dist2 = dx * dx + dy * dy;
+          const r = grain.size * 0.5;
+          if (dist2 < r * r) {
+            grain.heat = 1;
+            // Probability scales with density and neutron energy
+            const pFission = Math.min(0.9, densitySlider.value * 0.4 + Math.random() * 0.2);
+            if (Math.random() < pFission) {
+              grain.active = Math.random() > 0.12; // chance to leave residue
+              for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) {
+                const ang = Math.random() * Math.PI * 2;
+                const spd = 120 + Math.random() * 70;
+                neutrons.push({
+                  x: grain.x,
+                  y: grain.y,
+                  vx: Math.cos(ang) * spd,
+                  vy: Math.sin(ang) * spd,
+                  alive: true
+                });
+              }
+              return true;
+            } else {
+              // scattered
+              const angle = Math.atan2(dy, dx) + (Math.random() - 0.5);
+              const speed = Math.sqrt(n.vx * n.vx + n.vy * n.vy) * 0.6;
+              n.vx = Math.cos(angle) * speed;
+              n.vy = Math.sin(angle) * speed;
+              return false;
+            }
+          }
+        }
+        return false;
+      }
+
+      function update(dt) {
+        const injectionProb = parseFloat(injectionSlider.value) * 0.2;
+        if (Math.random() < injectionProb) spawnNeutrons(1);
+
+        const newNeutrons = [];
+        let fissions = 0;
+        for (const n of neutrons) {
+          if (!n.alive) continue;
+          n.x += n.vx * dt;
+          n.y += n.vy * dt;
+
+          // boundaries reflect
+          if (n.x < 0 || n.x > width) n.vx *= -1;
+          if (n.y < 0 || n.y > height) n.vy *= -1;
+
+          if (captureByRods(n)) continue;
+          const fission = handleCollisions(n);
+          if (fission) {
+            fissions++;
+            continue; // absorbed in fission event
+          }
+          newNeutrons.push(n);
+        }
+        neutrons = newNeutrons;
+
+        // track fissions per second
+        fissionCounter.push({ t: performance.now(), count: fissions });
+        const cutoff = performance.now() - 1000;
+        fissionCounter = fissionCounter.filter(e => e.t > cutoff);
+        const recent = fissionCounter.reduce((sum, e) => sum + e.count, 0);
+
+        // keff approximation: neutrons after / before
+        const keff = neutrons.length > 0 ? Math.min(3, (neutrons.length + 1) / Math.max(1, newNeutrons.length || 1)) : 0;
+
+        // heat model
+        heat = Math.min(1.2, heat + recent * 0.0008 - rodsSlider.value * 0.0006);
+        heat = Math.max(0, heat * 0.998);
+        const heatPercent = Math.round(Math.min(1, heat) * 100);
+        heatVal.textContent = heatPercent + "%";
+        heatMarker.style.transform = `translateX(${heatPercent}%)`;
+
+        nCount.textContent = neutrons.length.toString();
+        rateEl.textContent = recent.toFixed(0);
+        keffEl.textContent = keff.toFixed(2);
+
+        for (const grain of fuel) {
+          if (grain.heat > 0) {
+            grain.heat -= dt * 0.8;
+            if (grain.heat < 0) grain.heat = 0;
+          }
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        // subtle vignette
+        const grad = ctx.createRadialGradient(width / 2, height / 2, Math.min(width, height) * 0.15, width / 2, height / 2, Math.max(width, height) * 0.65);
+        grad.addColorStop(0, "rgba(12, 20, 32, 0)");
+        grad.addColorStop(1, "rgba(5, 7, 12, 0.8)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+
+        // control rod overlay
+        const rodDepth = rodsSlider.value;
+        ctx.fillStyle = "rgba(142,163,182,0.18)";
+        const rodTop = height * 0.25;
+        const rodHeight = rodDepth * height * 0.5;
+        ctx.fillRect(width * 0.15, rodTop, width * 0.7, rodHeight);
+
+        // fuel
+        for (const grain of fuel) {
+          const s = grain.size;
+          const alpha = grain.active ? 0.9 : 0.35;
+          ctx.fillStyle = `rgba(77,208,135,${alpha})`;
+          ctx.beginPath();
+          ctx.arc(grain.x, grain.y, s * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+          if (grain.heat > 0) {
+            const glow = grain.heat;
+            ctx.strokeStyle = `rgba(255,143,61,${glow})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(grain.x, grain.y, s * (0.6 + glow * 0.6), 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+
+        // neutrons
+        ctx.fillStyle = "rgba(58,208,255,0.9)";
+        for (const n of neutrons) {
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function loop(now) {
+        const dt = Math.min(0.05, (now - lastTime) / 1000);
+        lastTime = now;
+        if (running) update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      function resetAll() {
+        neutrons = [];
+        spawnFuel();
+        spawnNeutrons(30);
+        heat = 0;
+        fissionCounter = [];
+      }
+
+      densitySlider.addEventListener("input", () => {
+        densityVal.textContent = Number(densitySlider.value).toFixed(2) + "×";
+        spawnFuel();
+      });
+      rodsSlider.addEventListener("input", () => {
+        rodVal.textContent = Math.round(rodsSlider.value * 100) + "%";
+      });
+      injectionSlider.addEventListener("input", () => {
+        injVal.textContent = Number(injectionSlider.value).toFixed(2);
+      });
+
+      pulseBtn.addEventListener("click", () => spawnNeutrons(60));
+      toggleBtn.addEventListener("click", () => {
+        running = !running;
+        toggleBtn.textContent = running ? "Pause" : "Resume";
+      });
+      resetBtn.addEventListener("click", resetAll);
+
+      densityVal.textContent = Number(densitySlider.value).toFixed(2) + "×";
+      rodVal.textContent = Math.round(rodsSlider.value * 100) + "%";
+      injVal.textContent = Number(injectionSlider.value).toFixed(2);
+      resetAll();
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

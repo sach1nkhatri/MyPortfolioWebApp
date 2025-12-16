@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Astro Love Match</title>
+  <style>
+    :root {
+      --bg: #0f0a1a;
+      --panel: rgba(255, 255, 255, 0.06);
+      --card: rgba(255, 255, 255, 0.08);
+      --text: #f9f2ff;
+      --accent: #ff86c8;
+      --accent2: #7bf1f8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,134,200,0.15), transparent 40%),
+        radial-gradient(circle at 80% 10%, rgba(123,241,248,0.18), transparent 35%),
+        radial-gradient(circle at 50% 80%, rgba(255,255,255,0.08), transparent 45%),
+        #0f0a1a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      width: min(1100px, 100%);
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+    @media (max-width: 960px) { .container { grid-template-columns: 1fr; } }
+    h1 { margin: 0; letter-spacing: 1px; font-size: 24px; }
+    .subtitle { color: #d7c8ec; margin: 4px 0 12px 0; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: inset 0 0 12px rgba(255,255,255,0.03);
+    }
+    label { display: block; margin: 6px 0 2px 0; font-size: 13px; color: #d7c8ec; }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      font-size: 14px;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, #ff86c8, #7bf1f8);
+      color: #0c0d14;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+      letter-spacing: 0.6px;
+    }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    #result {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 200px;
+      box-shadow: inset 0 0 12px rgba(255,255,255,0.04);
+      line-height: 1.5;
+    }
+    .score {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      margin-right: 6px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div>
+      <h1>Astro Love Calculator</h1>
+      <div class="subtitle">Blend of stars, numerology, and a sprinkle of sciencey superstition.</div>
+      <div class="card">
+        <h3>Person A</h3>
+        <label>Name</label><input id="aName" placeholder="Ariana" value="">
+        <label>Age</label><input id="aAge" type="number" min="1" max="120" value="26">
+        <label>Date of Birth</label><input id="aDob" type="date">
+        <label>Zodiac</label>
+        <select id="aZodiac"></select>
+      </div>
+      <div class="card" style="margin-top:10px;">
+        <h3>Person B</h3>
+        <label>Name</label><input id="bName" placeholder="Kartik" value="">
+        <label>Age</label><input id="bAge" type="number" min="1" max="120" value="28">
+        <label>Date of Birth</label><input id="bDob" type="date">
+        <label>Zodiac</label>
+        <select id="bZodiac"></select>
+      </div>
+      <div class="actions">
+        <button id="calc">Calculate Match</button>
+        <button id="save">Save CSV</button>
+      </div>
+    </div>
+    <div>
+      <div id="result">
+        <div class="score">--%</div>
+        <div id="summary"></div>
+        <div id="details"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const zodiacs = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+      const aZ = document.getElementById("aZodiac");
+      const bZ = document.getElementById("bZodiac");
+      zodiacs.forEach(z => {
+        const optA = document.createElement("option"); optA.value = z; optA.textContent = z; aZ.appendChild(optA);
+        const optB = document.createElement("option"); optB.value = z; optB.textContent = z; bZ.appendChild(optB.cloneNode(true));
+      });
+      aZ.value = "Leo";
+      bZ.value = "Aquarius";
+
+      const scoreEl = document.querySelector(".score");
+      const summaryEl = document.getElementById("summary");
+      const detailsEl = document.getElementById("details");
+
+      function compatibility(a, b) {
+        const nameScore = (sumName(a.name) + sumName(b.name)) % 40;
+        const ageDiff = Math.abs(a.age - b.age);
+        const ageScore = Math.max(0, 20 - ageDiff * 1.2);
+        const zodiacScore = zodiacCompat(a.zodiac, b.zodiac);
+        const dobScore = dobAffinity(a.dob, b.dob);
+        const total = Math.min(100, Math.round(nameScore + ageScore + zodiacScore + dobScore + 10));
+        return { total, nameScore, ageScore, zodiacScore, dobScore };
+      }
+
+      function sumName(name) {
+        return name.toUpperCase().split("").reduce((s,ch) => s + ((ch.charCodeAt(0) - 64) % 9), 0);
+      }
+      function zodiacCompat(a, b) {
+        const pairs = {
+          "Aries":["Leo","Sagittarius","Gemini"],
+          "Taurus":["Virgo","Capricorn","Cancer"],
+          "Gemini":["Libra","Aquarius","Aries"],
+          "Cancer":["Scorpio","Pisces","Taurus"],
+          "Leo":["Aries","Sagittarius","Libra"],
+          "Virgo":["Taurus","Capricorn","Cancer"],
+          "Libra":["Gemini","Aquarius","Leo"],
+          "Scorpio":["Cancer","Pisces","Capricorn"],
+          "Sagittarius":["Aries","Leo","Libra"],
+          "Capricorn":["Taurus","Virgo","Scorpio"],
+          "Aquarius":["Gemini","Libra","Sagittarius"],
+          "Pisces":["Cancer","Scorpio","Capricorn"]
+        };
+        return (pairs[a] && pairs[a].includes(b)) ? 20 : 8;
+      }
+      function dobAffinity(a, b) {
+        if (!a || !b) return 12;
+        const da = new Date(a), db = new Date(b);
+        const dayMatch = 4 - Math.abs(da.getDate() - db.getDate()) * 0.2;
+        const monthMatch = 6 - Math.abs(da.getMonth() - db.getMonth()) * 0.6;
+        return Math.max(0, dayMatch + monthMatch + 8);
+      }
+
+      function generateNarrative(a, b, scores) {
+        const lines = [];
+        lines.push(`<div class="badge">Name resonance: ${scores.nameScore.toFixed(1)}</div>`);
+        lines.push(`<div class="badge">Zodiac chemistry: ${scores.zodiacScore.toFixed(1)}</div>`);
+        lines.push(`<div class="badge">Chrono harmony: ${scores.ageScore.toFixed(1)}</div>`);
+        lines.push(`<div class="badge">Birthwave sync: ${scores.dobScore.toFixed(1)}</div>`);
+        const para = [];
+        para.push(`${a.name} (${a.zodiac}) and ${b.name} (${b.zodiac}) show a cosmic alignment leaning ${scores.total >= 70 ? "radiant" : "intriguing"}.`);
+        para.push(`Name numerology hums at ${scores.nameScore.toFixed(1)}, while age energy sits at ${scores.ageScore.toFixed(1)}—${scores.ageScore > 12 ? "balanced rhythms" : "playful dissonance"}.`);
+        para.push(`Zodiac affinity grants ${scores.zodiacScore.toFixed(1)} points, and their birthwave sync adds ${scores.dobScore.toFixed(1)} to the mix.`);
+        para.push(`Overall compatibility: <strong>${scores.total}%</strong>. Suggested ritual: a stargazing walk, exchange of playlists, and matching beverages for synchronicity.`);
+        return { badges: lines.join(" "), text: para.join(" ") };
+      }
+
+      function calculate() {
+        const a = {
+          name: document.getElementById("aName").value.trim() || "Person A",
+          age: parseInt(document.getElementById("aAge").value || "0", 10),
+          dob: document.getElementById("aDob").value,
+          zodiac: aZ.value
+        };
+        const b = {
+          name: document.getElementById("bName").value.trim() || "Person B",
+          age: parseInt(document.getElementById("bAge").value || "0", 10),
+          dob: document.getElementById("bDob").value,
+          zodiac: bZ.value
+        };
+        const scores = compatibility(a, b);
+        scoreEl.textContent = scores.total + "%";
+        const narrative = generateNarrative(a, b, scores);
+        summaryEl.innerHTML = narrative.text;
+        detailsEl.innerHTML = narrative.badges;
+        return { a, b, scores };
+      }
+
+      function downloadCSV(data) {
+        const headers = ["Name A","Age A","DOB A","Zodiac A","Name B","Age B","DOB B","Zodiac B","Score"];
+        const row = [data.a.name, data.a.age, data.a.dob, data.a.zodiac, data.b.name, data.b.age, data.b.dob, data.b.zodiac, data.scores.total];
+        const csv = [headers.join(","), row.map(v => `"${v ?? ""}"`).join(",")].join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "love-match.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById("calc").addEventListener("click", calculate);
+      document.getElementById("save").addEventListener("click", () => {
+        const data = calculate();
+        downloadCSV(data);
+      });
+    })();
+  </script>
+</body>
+</html>

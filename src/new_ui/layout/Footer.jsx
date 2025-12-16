@@ -1,13 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import '../css/paper.css';
+import logo from '../../assets/sachin_text_logo.png';
 
 const Footer = () => {
     return (
         <footer className="paper-footer">
             <div className="paper-footer-col">
-                <div style={{ fontSize: '24px', marginBottom: '6px' }}>Paper Site · Sachin Khatri</div>
-                <p>Drawn with a digital Sharpie so pixels feel human — everything is a prototype.</p>
+                <img src={logo} alt="Paper Site logo" className="paper-brand-logo" />
+                {/* <div style={{ fontSize: '24px', marginBottom: '6px' }}>Sachin Khatri</div> "use later for text-remove me"   */}
+                <p>everything is a prototype.</p>
                 <p style={{ marginTop: '8px' }}>
                     Prefer the original look? <Link to="/classic">Classic UI</Link>
                 </p>

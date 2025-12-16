@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Particle Simulator – Multi‑Direction + Self Collision</title>
+<style>
+  html, body { margin:0; height:100%; overflow:hidden; font-family:sans-serif; }
+  #ui {
+    position:absolute;
+    top:10px; left:10px;
+    background:rgba(255,255,255,.9);
+    padding:12px; border-radius:6px;
+    z-index:10;
+  }
+  #ui label { display:block; margin-top:6px; font-size:.9em;}
+  canvas { display:block; }
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <label>Scenario:
+    <select id="scenario"></select>
+  </label>
+  <label>Particles: 
+    <input type="range" id="particleCount" min="10" max="2000" step="10" value="300">
+    <span id="particleCountVal">300</span>
+  </label>
+  <button id="resetBtn">Reset</button>
+  <button id="pauseBtn">Pause</button>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+// ------------------------------------------------------------
+// 1️⃣ GLOBAL SETTINGS & UTILITIES
+// ------------------------------------------------------------
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+// Simple helpers for collision math
+function dot(ax,ay,bx,by){ return ax*bx + ay*by; }
+function normalize(dx,dy){
+  const len = Math.hypot(dx,dy);
+  return {x:dx/len, y:dy/len};
+}
+
+// ------------------------------------------------------------
+// 2️⃣ PARTICLE CLASS
+// ------------------------------------------------------------
+class Particle {
+  constructor(x, y){
+    this.x = x; this.y = y;
+    // Start with a random velocity (−50 … +50 px/s)
+    const speed = 50;
+    const angle = Math.random()*2*Math.PI;
+    this.vx = speed * Math.cos(angle);
+    this.vy = speed * Math.sin(angle);
+
+    this.radius = 3 + Math.random()*2; // varied size
+    this.color = `hsl(${Math.floor(Math.random()*360)},70%,50%)`;
+  }
+  update(dt){
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+
+    // simple boundary bounce
+    if(this.x<0||this.x>canvas.width){ this.vx*=-1; }
+    if(this.y<0||this.y>canvas.height){ this.vy*=-1; }
+  }
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius,0,Math.PI*2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+  }
+}
+
+// ------------------------------------------------------------
+// 3️⃣ SIMULATION ENGINE
+// ------------------------------------------------------------
+class Simulator {
+  constructor(){
+    this.particles = [];
+    this.lastTime = performance.now();
+    this.paused   = false;
+  }
+  init(count){
+    this.particles = [];
+    for(let i=0;i<count;i++){
+      const x = Math.random()*canvas.width;
+      const y = Math.random()*canvas.height;
+      this.particles.push(new Particle(x,y));
+    }
+  }
+  setScenario(name){
+    this.scenario = name;
+  }
+
+  // ------------------------------------------------------------
+  // 3️⃣.1 COLLISION RESOLUTION
+  // ------------------------------------------------------------
+  resolveCollisions(){
+    const particles = this.particles;
+    for(let i=0;i<particles.length;i++){
+      const a = particles[i];
+      for(let j=i+1;j<particles.length;j++){
+        const b = particles[j];
+
+        // Vector from a to b
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        const distSq = dx*dx + dy*dy;
+        const minDist = a.radius + b.radius;
+
+        if(distSq < minDist*minDist){ // overlap
+          const dist = Math.sqrt(distSq) || 0.01; // avoid div‑by‑zero
+          const overlap = minDist - dist;
+
+          // Move particles apart along the normal (equal share)
+          const nx = dx / dist;
+          const ny = dy / dist;
+          a.x -= nx * (overlap/2);
+          a.y -= ny * (overlap/2);
+          b.x += nx * (overlap/2);
+          b.y += ny * (overlap/2);
+
+          // Elastic collision – equal mass
+          const v1n = dot(a.vx, a.vy, nx, ny);
+          const v1t = -dot(a.vx, a.vy, ny, nx); // tangent is perpendicular
+          const v2n = dot(b.vx, b.vy, nx, ny);
+          const v2t = -dot(b.vx, b.vy, ny, nx);
+
+          // swap normal components
+          const v1nAfter = v2n;
+          const v2nAfter = v1n;
+
+          // Reconstruct velocities
+          a.vx = v1nAfter*nx - v1t*ny;
+          a.vy = v1nAfter*ny + v1t*nx;
+          b.vx = v2nAfter*nx - v2t*ny;
+          b.vy = v2nAfter*ny + v2t*nx;
+        }
+      }
+    }
+  }
+
+  // ------------------------------------------------------------
+  // 3️⃣.2 MAIN LOOP
+  // ------------------------------------------------------------
+  step(){
+    if(this.paused) return;
+    const now = performance.now();
+    const dt  = (now - this.lastTime)/1000; // seconds
+    this.lastTime = now;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // 1️⃣ apply scenario forces
+    switch(this.scenario){
+      case 'Gravity':
+        for(const p of this.particles){
+          p.vy += 98 * dt; // g = 98 px/s²
+        }
+        break;
+      case 'Wind':
+        for(const p of this.particles){
+          const wind = 50 + Math.sin(now/1000)*20;
+          p.vx += wind * dt;
+        }
+        break;
+      case 'Repulsion':
+        const k = 50000; // repulsion constant
+        for(let i=0;i<this.particles.length;i++){
+          const a=this.particles[i];
+          for(let j=i+1;j<this.particles.length;j++){
+            const b=this.particles[j];
+            let dx = a.x-b.x, dy=a.y-b.y;
+            const distSq = dx*dx+dy*dy + 0.01; // avoid div by zero
+            const force = k/distSq;
+            const dist = Math.sqrt(distSq);
+            dx/=dist; dy/=dist;
+            a.vx += force*dx*dt;
+            a.vy += force*dy*dt;
+            b.vx -= force*dx*dt;
+            b.vy -= force*dy*dt;
+          }
+        }
+        break;
+      case 'Explosion':
+        if(this.firstFrame){
+          for(const p of this.particles){
+            const dx = p.x - canvas.width/2;
+            const dy = p.y - canvas.height/2;
+            let dist = Math.sqrt(dx*dx+dy*dy)+0.01;
+            const mag = 5000/dist; // inversely proportional
+            p.vx += (dx/dist)*mag;
+            p.vy += (dy/dist)*mag;
+          }
+          this.firstFrame=false;
+        }
+        break;
+    }
+
+    // 2️⃣ update positions
+    for(const p of this.particles){
+      p.update(dt);
+    }
+
+    // 3️⃣ resolve self‑collisions
+    this.resolveCollisions();
+
+    // 4️⃣ draw everything
+    for(const p of this.particles){
+      p.draw();
+    }
+
+    requestAnimationFrame(()=>this.step());
+  }
+  start(){
+    this.lastTime = performance.now();
+    requestAnimationFrame(()=>this.step());
+  }
+}
+
+// ------------------------------------------------------------
+// 4️⃣ UI HANDLERS
+// ------------------------------------------------------------
+const sim = new Simulator();
+sim.setScenario('Gravity');
+sim.init(300);
+sim.start();
+
+const scenarioSelect = document.getElementById('scenario');
+['Gravity','Wind','Repulsion','Explosion'].forEach(name=>{
+  const opt=document.createElement('option');
+  opt.value=name; opt.textContent=name;
+  scenarioSelect.appendChild(opt);
+});
+scenarioSelect.addEventListener('change',e=>{
+  sim.setScenario(e.target.value);
+  if(e.target.value==='Explosion'){
+    sim.firstFrame=true;
+  }
+});
+
+const particleCountInput=document.getElementById('particleCount');
+const particleCountVal=document.getElementById('particleCountVal');
+particleCountInput.addEventListener('input',e=>{
+  particleCountVal.textContent=e.target.value;
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  sim.init(parseInt(particleCountInput.value));
+});
+
+document.getElementById('pauseBtn').addEventListener('click',()=>{
+  sim.paused=!sim.paused;
+  document.getElementById('pauseBtn').textContent=sim.paused?'Resume':'Pause';
+});
+
+// ------------------------------------------------------------
+// 5️⃣ INITIAL STATE
+// ------------------------------------------------------------
+particleCountInput.dispatchEvent(new Event('input'));
+</script>
+</body>
+</html>

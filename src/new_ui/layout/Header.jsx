@@ -1,14 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import '../css/paper.css';
-import logo from '../../assets/sachin_text_logo.png';
+
 
 const Header = () => {
     return (
         <header className="paper-header">
             <div className="paper-brand">
-                <img src={logo} alt="Paper Site logo" className="paper-brand-logo" />
-                <span>Paper Site</span>
+                {/* <img src={logo} alt="Paper Site logo" className="paper-brand-logo" /> */}
+                <span>Sachin Khatri</span>
             </div>
             <nav className="paper-nav">
                 <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>Home</NavLink>
