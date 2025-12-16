@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { ref, onValue, runTransaction } from 'firebase/database';
 import { database } from '../../firebase';
 import Spinner from '../components/Spinner';
@@ -63,28 +63,43 @@ const PaperBlogDetail = () => {
     }
 
     return (
-        <section className="paper-detail">
-            <div className="paper-detail-card">
-                <img src={post.img} alt={post.title} />
-                <h2 style={{ fontSize: '28px', marginTop: '4px' }}>{post.title}</h2>
-                <div className="paper-meta">{post.date} • {post.category}</div>
-                <p style={{ fontSize: '16px', lineHeight: 1.6 }}>{post.description}</p>
-                <div className="paper-detail-actions">
-                    <button className="paper-button" onClick={() => handleVote('like')}>👍 {likes}</button>
-                    <button className="paper-button" onClick={() => handleVote('dislike')}>👎 {dislikes}</button>
-                    {post.link && (
-                        <a
-                            href={post.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="paper-cta-link"
-                        >
-                            Link to Source
-                        </a>
-                    )}
-                </div>
+        <article className="paper-article">
+            <div className="paper-back-row">
+                <Link to="/blog" className="paper-back-link">← Back to blog</Link>
             </div>
-        </section>
+            <div className="paper-article-header">
+                <div className="paper-article-kicker">Notebook Feature</div>
+                <div className="paper-article-meta">
+                    <span>{post.date}</span>
+                    <span>•</span>
+                    <span>{post.category}</span>
+                </div>
+                <h1 className="paper-article-title">{post.title}</h1>
+            </div>
+
+            <div className="paper-article-hero">
+                <img src={post.img} alt={post.title} />
+            </div>
+
+            <div className="paper-article-body">
+                <p>{post.description}</p>
+            </div>
+
+            <div className="paper-detail-actions">
+                <button className="paper-button" onClick={() => handleVote('like')}>👍 {likes}</button>
+                <button className="paper-button" onClick={() => handleVote('dislike')}>👎 {dislikes}</button>
+                {post.link && (
+                    <a
+                        href={post.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="paper-cta-link"
+                    >
+                        Link to Source
+                    </a>
+                )}
+            </div>
+        </article>
     );
 };
 
